@@ -1,0 +1,43 @@
+{
+  "name": "Peer Club - Flashcards Generated Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "flashcards-generated",
+        "options": {}
+      },
+      "name": "Webhook - Flashcards Generated",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "flashcards-generated"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json.body;\nconst data = payload.data;\n\nreturn [{\n  json: {\n    userId: payload.userId,\n    userEmail: payload.userEmail,\n    deckTitle: data.title,\n    cardCount: data.cardCount,\n    documentName: data.documentName,\n    readyAt: payload.timestamp,\n    notification: `🎉 Your deck '${data.title}' with ${data.cardCount} active recall flashcards is ready!`\n  }\n}];"
+      },
+      "name": "Format Deck Notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Flashcards Generated": {
+      "main": [
+        [
+          {
+            "node": "Format Deck Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "name": "Peer Club - AI Flashcard Deck Generator (OpenRouter)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-flashcards",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-generate-flashcards",
+      "name": "Webhook - Generate Flashcards",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "generate-flashcards"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.OPENROUTER_API_KEY || 'YOUR_OPENROUTER_API_KEY'}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "http://localhost:5678"
+            },
+            {
+              "name": "X-Title",
+              "value": "Peer Club"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\nJSON.stringify({\n  model: \"nex-agi/nex-n2.5-pro:free\",\n  temperature: 0.3,\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are an educational tutor creating active recall flashcards. Output ONLY a valid JSON array of objects with front and back. No conversational filler or markdown.\"\n    },\n    {\n      role: \"user\",\n      content: \"Generate \" + ($json.body.cardCount || 10) + \" flashcards from this study material:\\n\\n\" + ($json.body.studyText || $json.body.title || \"Computer Science & Engineering\") + \"\\n\\nOutput Format:\\n[{\\\"front\\\": \\\"Key Concept or Question\\\", \\\"back\\\": \\\"Clear, concise explanation or definition\\\"}]\"\n    }\n  ]\n})\n}}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "openrouter-flashcards",
+      "name": "OpenRouter - nex-n2.5-pro:free",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const content = $json.choices?.[0]?.message?.content || '';\nlet cleaned = content.trim();\nif (cleaned.startsWith('```json')) {\n  cleaned = cleaned.replace(/^```json\\s*/, '').replace(/\\s*```$/, '');\n} else if (cleaned.startsWith('```')) {\n  cleaned = cleaned.replace(/^```\\s*/, '').replace(/\\s*```$/, '');\n}\n\nlet flashcards = [];\ntry {\n  flashcards = JSON.parse(cleaned);\n} catch (e) {\n  const match = cleaned.match(/\\[[\\s\\S]*\\]/);\n  if (match) {\n    flashcards = JSON.parse(match[0]);\n  } else {\n    throw new Error('Could not parse flashcards JSON from OpenRouter output');\n  }\n}\n\nconst formatted = (Array.isArray(flashcards) ? flashcards : []).map((c, idx) => ({\n  front: c.front || c.question || c.term || `Concept ${idx + 1}`,\n  back: c.back || c.answer || c.definition || 'Detailed explanation'\n}));\n\nreturn [{\n  json: {\n    success: true,\n    model: 'nex-agi/nex-n2.5-pro:free',\n    count: formatted.length,\n    cards: formatted\n  }\n}];"
+      },
+      "id": "format-flashcards",
+      "name": "Parse & Validate Flashcards",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "respond-flashcards",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [940, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Generate Flashcards": {
+      "main": [
+        [
+          {
+            "node": "OpenRouter - nex-n2.5-pro:free",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter - nex-n2.5-pro:free": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate Flashcards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate Flashcards": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

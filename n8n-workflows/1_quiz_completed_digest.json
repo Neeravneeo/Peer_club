@@ -1,0 +1,70 @@
+{
+  "name": "Peer Club - Quiz Completed Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "quiz-completed",
+        "options": {}
+      },
+      "name": "Webhook - Quiz Completed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "quiz-completed"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.eventType }}",
+              "value2": "quiz.completed"
+            }
+          ]
+        }
+      },
+      "name": "Validate Event",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json.body;\nconst data = payload.data;\n\nconst isPass = data.percentage >= 60;\nconst summaryMessage = isPass \n  ? `Great job! You passed '${data.quizTitle}' with ${data.percentage}% accuracy (${data.score}/${data.totalQuestions}).`\n  : `Good practice! You scored ${data.percentage}% on '${data.quizTitle}'. Review the missed concepts to strengthen recall.`;\n\nreturn [{\n  json: {\n    userEmail: payload.userEmail,\n    quizTitle: data.quizTitle,\n    score: data.score,\n    totalQuestions: data.totalQuestions,\n    percentage: data.percentage,\n    timeTakenSeconds: data.timeTakenSeconds,\n    missedCount: data.missedQuestions ? data.missedQuestions.length : 0,\n    summaryMessage\n  }\n}];"
+      },
+      "name": "Format Quiz Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 280]
+    }
+  ],
+  "connections": {
+    "Webhook - Quiz Completed": {
+      "main": [
+        [
+          {
+            "node": "Validate Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Event": {
+      "main": [
+        [
+          {
+            "node": "Format Quiz Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
