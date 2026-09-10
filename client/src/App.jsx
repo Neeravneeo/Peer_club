@@ -35,7 +35,7 @@ import {
 } from 'lucide-react'
 
 export function App() {
-  const { isLoading } = useAuth()
+  const { isLoading, isAuthenticated } = useAuth()
 
   if (isLoading) {
     return (
@@ -53,10 +53,10 @@ export function App() {
       <Toaster position="top-right" richColors />
       <div className="min-h-screen bg-pure-white text-carbon-ink">
         <Routes>
-          {/* Public Auth Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          {/* Public Auth Routes - redirect to dashboard when auth is paused */}
+          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
+          <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+          <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 

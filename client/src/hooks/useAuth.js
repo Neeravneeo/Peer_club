@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { useAuthStore } from '../stores/authStore'
+import { useAuthStore, PAUSE_AUTH, DEV_MOCK_USER } from '../stores/authStore'
 import { api } from '../lib/api'
 
 export function useAuth() {
@@ -8,6 +8,12 @@ export function useAuth() {
     useAuthStore()
 
   useEffect(() => {
+    if (PAUSE_AUTH) {
+      setLoading(false)
+      fetchUserProfile()
+      return
+    }
+
     // 1. Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
