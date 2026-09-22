@@ -19,16 +19,16 @@ export function StreakCounter({ streakDays = 0, longestStreak = 0 }) {
   const daysToNext = nextMilestone - streakDays
 
   return (
-    <Card className="border-border bg-gradient-to-br from-pure-white via-surface-elevated to-pure-white rounded-[24px] overflow-hidden shadow-sm relative border hover:border-true-black/60 transition-colors">
+    <Card className="border border-white/[0.08] bg-[#0d0e11]/80 hover:border-white/[0.16] hover:bg-[#121318]/90 rounded-2xl overflow-hidden shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_8px_24px_rgba(0,0,0,0.5)] relative transition-all">
       <CardContent className="p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-ash">
-              Daily Study Habit
+            <span className="text-[11px] font-medium uppercase tracking-wider text-[#8a8f98]">
+              Daily Habit
             </span>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-voltage-lime text-true-black text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-medium">
             <Trophy className="w-3.5 h-3.5" /> Best: {longestStreak}d
           </div>
         </div>
@@ -36,29 +36,28 @@ export function StreakCounter({ streakDays = 0, longestStreak = 0 }) {
         <div className="flex items-center gap-4">
           <motion.div
             animate={{
-              scale: streakDays > 0 ? [1, 1.08, 1] : 1,
-              rotate: streakDays > 0 ? [0, -3, 3, 0] : 0,
+              scale: streakDays > 0 ? [1, 1.06, 1] : 1,
             }}
             transition={{
               duration: 2.5,
               repeat: Infinity,
               ease: 'easeInOut',
             }}
-            className="p-3.5 rounded-[18px] bg-voltage-lime text-true-black font-extrabold shadow-sm border border-black/10 shrink-0"
+            className="p-3 rounded-xl bg-gradient-to-b from-amber-500/20 to-amber-600/10 text-amber-400 border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.2)] shrink-0"
           >
-            <Flame className="w-7 h-7 fill-true-black" />
+            <Flame className="w-6 h-6 fill-amber-400" />
           </motion.div>
 
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-carbon-ink tracking-tight font-sans">
+              <span className="text-3xl font-semibold text-white tracking-tight">
                 {streakDays}
               </span>
-              <span className="text-sm font-bold text-ash">
+              <span className="text-xs font-medium text-[#8a8f98]">
                 {streakDays === 1 ? 'Day Streak' : 'Days Streak'}
               </span>
             </div>
-            <p className="text-xs text-ash mt-0.5">
+            <p className="text-xs text-[#8a8f98] mt-0.5">
               {streakDays === 0
                 ? 'Log a study session today to start your streak!'
                 : streakDays >= 7
@@ -69,20 +68,20 @@ export function StreakCounter({ streakDays = 0, longestStreak = 0 }) {
         </div>
 
         {/* Milestone Progress Bar */}
-        <div className="space-y-1.5 pt-2 border-t border-border/60">
-          <div className="flex items-center justify-between text-[11px] font-semibold text-ash">
+        <div className="space-y-1.5 pt-2 border-t border-white/[0.08]">
+          <div className="flex items-center justify-between text-[11px] font-medium text-[#8a8f98]">
             <span>Next Milestone: {nextMilestone} Days</span>
-            <span className="text-carbon-ink font-bold">
+            <span className="text-white font-mono">
               {daysToNext === 1 ? '1 day left' : `${daysToNext} days left`}
             </span>
           </div>
 
-          <div className="h-2 w-full bg-surface-subtle rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="h-full bg-voltage-lime rounded-full"
+              className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full"
             />
           </div>
         </div>

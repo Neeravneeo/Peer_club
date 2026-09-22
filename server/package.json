@@ -10,7 +10,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "node prisma/seed.js",
     "db:studio": "prisma studio",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "test": "node test/streak.test.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.19.0",

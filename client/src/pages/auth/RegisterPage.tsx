@@ -1,0 +1,1 @@
+export { default, RegisterPage } from './RegisterPage.jsx';

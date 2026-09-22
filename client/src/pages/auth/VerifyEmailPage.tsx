@@ -1,0 +1,1 @@
+export { default, VerifyEmailPage } from './VerifyEmailPage.jsx';

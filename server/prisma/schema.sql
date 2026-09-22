@@ -128,3 +128,31 @@ CREATE INDEX IF NOT EXISTS "idx_studysessions_room" ON "studysessions"("roomId")
 CREATE INDEX IF NOT EXISTS "idx_leaderboard_room" ON "leaderboard"("roomId");
 CREATE INDEX IF NOT EXISTS "idx_leaderboard_user" ON "leaderboard"("userId");
 CREATE INDEX IF NOT EXISTS "idx_notifications_user" ON "notifications"("userId");
+
+-- 12. USER_STREAKS table
+CREATE TABLE IF NOT EXISTS "user_streaks" (
+    "_id" TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
+    "user_id" TEXT NOT NULL UNIQUE,
+    "current_streak" INTEGER NOT NULL DEFAULT 0,
+    "best_streak" INTEGER NOT NULL DEFAULT 0,
+    "last_visit_date" DATE,
+    "last_study_activity" TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT "fk_user_streaks_user" FOREIGN KEY ("user_id") REFERENCES "users"("_id") ON DELETE CASCADE
+);
+
+-- 13. STREAK_HISTORY table
+CREATE TABLE IF NOT EXISTS "streak_history" (
+    "_id" TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
+    "user_id" TEXT NOT NULL,
+    "activity_type" VARCHAR(50) NOT NULL,
+    "streak_count" INTEGER NOT NULL,
+    "recorded_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT "fk_streak_history_user" FOREIGN KEY ("user_id") REFERENCES "users"("_id") ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS "idx_user_streaks_user_id" ON "user_streaks"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_user_streaks_last_visit_date" ON "user_streaks"("last_visit_date");
+CREATE INDEX IF NOT EXISTS "idx_streak_history_user_id" ON "streak_history"("user_id");
+CREATE INDEX IF NOT EXISTS "idx_streak_history_recorded_at" ON "streak_history"("recorded_at");

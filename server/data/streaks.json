@@ -1,0 +1,162 @@
+{
+  "test-user-A-1789536315080": {
+    "userId": "test-user-A-1789536315080",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-14",
+    "lastStudyActivity": "2026-09-14T10:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-14T10:00:00.000Z"
+  },
+  "test-user-A-1789536356157": {
+    "userId": "test-user-A-1789536356157",
+    "currentStreak": 0,
+    "bestStreak": 2,
+    "lastVisitDate": "2026-09-17",
+    "lastStudyActivity": "2026-09-17T12:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-17T12:00:00.000Z"
+  },
+  "test-user-midnight-1789536356180": {
+    "userId": "test-user-midnight-1789536356180",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-14",
+    "lastStudyActivity": "2026-09-15T00:10:00.000Z",
+    "lastStreakIncrementAt": "2026-09-14T23:50:00.000Z"
+  },
+  "test-e2e-user-a-1789536438197": {
+    "userId": "test-e2e-user-a-1789536438197",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-16",
+    "lastStudyActivity": "2026-09-16T05:27:18.583Z",
+    "lastStreakIncrementAt": "2026-09-16T05:27:18.578Z"
+  },
+  "test-user-A-1789537352850": {
+    "userId": "test-user-A-1789537352850",
+    "currentStreak": 0,
+    "bestStreak": 2,
+    "lastVisitDate": "2026-09-17",
+    "lastStudyActivity": "2026-09-17T12:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-17T12:00:00.000Z"
+  },
+  "test-user-midnight-1789537352878": {
+    "userId": "test-user-midnight-1789537352878",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-14",
+    "lastStudyActivity": "2026-09-15T00:10:00.000Z",
+    "lastStreakIncrementAt": "2026-09-14T23:50:00.000Z"
+  },
+  "test-user-A-1789538059811": {
+    "userId": "test-user-A-1789538059811",
+    "currentStreak": 0,
+    "bestStreak": 2,
+    "lastVisitDate": "2026-09-17",
+    "lastStudyActivity": "2026-09-17T12:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-17T12:00:00.000Z"
+  },
+  "test-user-midnight-1789538059824": {
+    "userId": "test-user-midnight-1789538059824",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-14",
+    "lastStudyActivity": "2026-09-15T00:10:00.000Z",
+    "lastStreakIncrementAt": "2026-09-14T23:50:00.000Z"
+  },
+  "b3a7464f-8d02-42ae-b26a-3b3b61255dd3": {
+    "userId": "b3a7464f-8d02-42ae-b26a-3b3b61255dd3",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-16",
+    "lastStudyActivity": "2026-09-16T06:42:39.666Z",
+    "lastStreakIncrementAt": "2026-09-16T06:42:39.202Z"
+  },
+  "4147f481-da38-4582-a6f0-06c989a85888": {
+    "userId": "4147f481-da38-4582-a6f0-06c989a85888",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-16",
+    "lastStudyActivity": "2026-09-16T08:32:41.233Z",
+    "lastStreakIncrementAt": "2026-09-16T08:32:40.440Z"
+  },
+  "test-user-A-1789553070021": {
+    "userId": "test-user-A-1789553070021",
+    "currentStreak": 0,
+    "bestStreak": 2,
+    "lastVisitDate": "2026-09-17",
+    "lastStudyActivity": "2026-09-17T12:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-17T12:00:00.000Z"
+  },
+  "test-user-midnight-1789553070052": {
+    "userId": "test-user-midnight-1789553070052",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-14",
+    "lastStudyActivity": "2026-09-15T00:10:00.000Z",
+    "lastStreakIncrementAt": "2026-09-14T23:50:00.000Z"
+  },
+  "test-user-A-1789553140014": {
+    "userId": "test-user-A-1789553140014",
+    "currentStreak": 0,
+    "bestStreak": 2,
+    "lastVisitDate": "2026-09-17",
+    "lastStudyActivity": "2026-09-17T12:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-17T12:00:00.000Z"
+  },
+  "test-user-midnight-1789553140036": {
+    "userId": "test-user-midnight-1789553140036",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-14",
+    "lastStudyActivity": "2026-09-15T00:10:00.000Z",
+    "lastStreakIncrementAt": "2026-09-14T23:50:00.000Z"
+  },
+  "test-graph-lapsed-1789553140058": {
+    "userId": "test-graph-lapsed-1789553140058",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-14",
+    "lastStudyActivity": "2026-09-14T10:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-14T10:00:00.000Z"
+  },
+  "test-graph-safe-1789553140058": {
+    "userId": "test-graph-safe-1789553140058",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-15",
+    "lastStudyActivity": "2026-09-15T10:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-15T10:00:00.000Z"
+  },
+  "test-user-A-1789591857322": {
+    "userId": "test-user-A-1789591857322",
+    "currentStreak": 0,
+    "bestStreak": 2,
+    "lastVisitDate": "2026-09-17",
+    "lastStudyActivity": "2026-09-17T12:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-17T12:00:00.000Z"
+  },
+  "test-user-midnight-1789591857336": {
+    "userId": "test-user-midnight-1789591857336",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-14",
+    "lastStudyActivity": "2026-09-15T00:10:00.000Z",
+    "lastStreakIncrementAt": "2026-09-14T23:50:00.000Z"
+  },
+  "test-graph-lapsed-1789591857352": {
+    "userId": "test-graph-lapsed-1789591857352",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-14",
+    "lastStudyActivity": "2026-09-14T10:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-14T10:00:00.000Z"
+  },
+  "test-graph-safe-1789591857352": {
+    "userId": "test-graph-safe-1789591857352",
+    "currentStreak": 0,
+    "bestStreak": 1,
+    "lastVisitDate": "2026-09-15",
+    "lastStudyActivity": "2026-09-15T10:00:00.000Z",
+    "lastStreakIncrementAt": "2026-09-15T10:00:00.000Z"
+  }
+}

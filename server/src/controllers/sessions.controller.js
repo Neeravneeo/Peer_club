@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../lib/prisma.js';
 import { triggerN8nWebhook } from '../services/n8n.service.js';
+import { recordUserActivity } from '../services/streak.service.js';
 
 export async function createStudySession(req, res, next) {
   try {
@@ -81,6 +82,9 @@ export async function createStudySession(req, res, next) {
       { id: req.user?.id, email: req.user?.email }
     );
 
+    // Update comprehensive streak tracking
+    const streakResult = await recordUserActivity(userId, 'session').catch(() => null);
+
     return res.status(201).json({
       message: 'Study session logged successfully',
       session: {
@@ -90,7 +94,8 @@ export async function createStudySession(req, res, next) {
         endTime: session.endTime,
         roomId: session.roomId,
       },
-      newStreak: leaderboardEntry.streak,
+      newStreak: streakResult?.currentStreak ?? leaderboardEntry.streak,
+      bestStreak: streakResult?.bestStreak,
       studyHours: leaderboardEntry.studyHours,
     });
   } catch (err) {

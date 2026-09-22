@@ -1,0 +1,29 @@
+@import './styles/index.css';
+
+/* Craft Docs Custom Properties & Fallbacks */
+:root {
+  --color-canvas: #fff3e7;
+  --color-ink: #030302;
+  --color-white: #ffffff;
+  --color-linen: #f7f7f7;
+  --color-cloud: #efefef;
+  --color-ash: #e1e1e1;
+  --color-stone: #bebbba;
+  --color-graphite: #41413f;
+  --color-mint: #9bd8a9;
+  --color-marigold: #fde99b;
+  --color-periwinkle: #b8caf5;
+  --color-sky: #9ed4ef;
+  --color-papaya: #ff4500;
+  --color-azure: #0087ff;
+
+  --shadow-xl: rgba(0, 0, 0, 0.01) 0px 50px 40px 0px, rgba(0, 0, 0, 0.02) 0px 50px 40px 0px, rgba(0, 0, 0, 0.05) 0px 20px 40px 0px, rgba(0, 0, 0, 0.08) 0px 3px 10px 0px;
+  --shadow-md: rgba(0, 0, 0, 0.1) 0px 12px 12px 2px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+  --shadow-subtle: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px;
+}
+
+html, body {
+  overflow-x: clip !important;
+  max-width: 100vw;
+  width: 100%;
+}

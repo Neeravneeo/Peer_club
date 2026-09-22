@@ -1,0 +1,1 @@
+export { default, ForgotPasswordPage } from './ForgotPasswordPage.jsx';

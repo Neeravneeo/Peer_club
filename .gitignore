@@ -27,7 +27,11 @@ lerna-debug.log*
 
 # Editor & OS files
 .vscode/
+.cursor/
 .idea/
+
+# MCP configs (may contain API tokens)
+.agents/mcp_config.json
 *.suo
 *.ntvs*
 *.njsproj
@@ -40,3 +44,5 @@ Thumbs.db
 tmp/
 temp/
 scratch/
+graphify-out/cache/
+

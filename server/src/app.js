@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler.middleware.js';
+import { edgeCompression } from './middleware/compression.middleware.js';
 import { usersRouter } from './routes/users.routes.js';
 import { documentsRouter } from './routes/documents.routes.js';
 import { quizRouter } from './routes/quiz.routes.js';
@@ -13,6 +14,7 @@ import { notificationsRouter } from './routes/notifications.routes.js';
 import { roomsRouter } from './routes/rooms.routes.js';
 import { leaderboardRouter } from './routes/leaderboard.routes.js';
 import { internalRouter } from './routes/internal.routes.js';
+import { streakRouter } from './routes/streak.routes.js';
 
 dotenv.config();
 
@@ -26,6 +28,8 @@ app.use(
     credentials: true,
   })
 );
+// Zero-dependency native Brotli & Gzip compression for wire speed
+app.use(edgeCompression({ threshold: 512 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -40,6 +44,7 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/rooms', roomsRouter);
 app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/internal', internalRouter);
+app.use('/api/streak', streakRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

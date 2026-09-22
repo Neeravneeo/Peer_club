@@ -68,35 +68,35 @@ export function LogStudyModal({ open, onOpenChange }) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-2 rounded-full bg-voltage-lime text-true-black">
+            <div className="p-1.5 rounded-lg bg-gradient-to-b from-[#5e6ad2] to-[#454fa8] text-white">
               <Clock className="w-4 h-4" />
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-ash">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-[#8a8f98]">
               Accountability Tracker
             </span>
           </div>
-          <DialogTitle className="text-xl font-bold text-carbon-ink">
+          <DialogTitle className="text-xl font-semibold text-white tracking-tight">
             Log Study Session
           </DialogTitle>
-          <DialogDescription className="text-xs text-ash">
+          <DialogDescription className="text-xs text-[#8a8f98]">
             Record your study time to update your daily streak and earn consistency badges.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5 pt-2">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           {/* Quick Preset Buttons */}
-          <div className="space-y-2">
-            <Label className="text-xs font-bold text-ash">Quick Presets</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-[#8a8f98]">Quick Presets</Label>
             <div className="grid grid-cols-5 gap-2">
               {PRESET_DURATIONS.map((preset) => (
                 <button
                   key={preset}
                   type="button"
                   onClick={() => setDuration(preset)}
-                  className={`py-2 px-1 text-center rounded-[12px] text-xs font-bold border transition-all ${
+                  className={`py-1.5 px-1 text-center rounded-lg text-xs font-mono transition-all border ${
                     Number(duration) === preset
-                      ? 'bg-voltage-lime text-true-black border-black/20 shadow-sm'
-                      : 'bg-surface-elevated text-ash border-border hover:text-carbon-ink hover:border-true-black/40'
+                      ? 'bg-white/[0.15] text-white border-white/[0.25] shadow-sm font-semibold'
+                      : 'bg-white/[0.04] text-[#8a8f98] border-white/[0.08] hover:text-white hover:border-white/[0.15]'
                   }`}
                 >
                   {preset}m
@@ -106,8 +106,8 @@ export function LogStudyModal({ open, onOpenChange }) {
           </div>
 
           {/* Custom Duration Input */}
-          <div className="space-y-2">
-            <Label htmlFor="custom-duration" className="text-xs font-bold text-ash">
+          <div className="space-y-1.5">
+            <Label htmlFor="custom-duration" className="text-xs font-medium text-[#8a8f98]">
               Custom Duration (Minutes)
             </Label>
             <div className="relative">
@@ -118,16 +118,16 @@ export function LogStudyModal({ open, onOpenChange }) {
                 max="360"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
-                className="pl-9"
+                className="pl-9 font-mono text-sm"
                 required
               />
-              <Clock className="w-4 h-4 text-ash absolute left-3 top-1/2 -translate-y-1/2" />
+              <Clock className="w-4 h-4 text-[#8a8f98] absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
           </div>
 
           {/* Session Type */}
-          <div className="space-y-2">
-            <Label className="text-xs font-bold text-ash">Session Type</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-[#8a8f98]">Session Type</Label>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { type: 'work', label: 'Deep Focus' },
@@ -138,10 +138,10 @@ export function LogStudyModal({ open, onOpenChange }) {
                   key={item.type}
                   type="button"
                   onClick={() => setSessionType(item.type)}
-                  className={`py-2 px-2 text-center rounded-[12px] text-xs font-semibold border transition-all ${
+                  className={`py-2 px-2 text-center rounded-lg text-xs font-medium border transition-all ${
                     sessionType === item.type
-                      ? 'bg-carbon-ink text-pure-white border-transparent'
-                      : 'bg-surface-elevated text-ash border-border hover:text-carbon-ink'
+                      ? 'bg-gradient-to-b from-[#5e6ad2] to-[#4b55be] text-white border-[#717de0]/40 shadow-sm'
+                      : 'bg-white/[0.04] text-[#8a8f98] border-white/[0.08] hover:text-white'
                   }`}
                 >
                   {item.label}
@@ -150,10 +150,10 @@ export function LogStudyModal({ open, onOpenChange }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex items-center justify-end gap-2.5 pt-2">
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={() => onOpenChange(false)}
               disabled={loading}
               className="text-xs"

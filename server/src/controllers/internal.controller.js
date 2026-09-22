@@ -1,25 +1,67 @@
 import { prisma } from '../lib/prisma.js';
+import { checkAndResetLapsedStreaks } from '../services/streak.service.js';
 
 export async function getStreakAlertUsers(req, res, next) {
   try {
-    // Find users who have active streaks
-    const activeLeaderboardEntries = await prisma.leaderboard.findMany({
-      where: {
-        streak: { gt: 0 },
-      },
-      include: {
-        user: { select: { id: true, name: true, email: true } },
-      },
+    // Find users who have active streaks in user_streaks table (with fallback to leaderboard)
+    let users = [];
+    try {
+      const activeStreaks = await prisma.userStreak.findMany({
+        where: {
+          currentStreak: { gt: 0 },
+        },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+      });
+
+      if (activeStreaks.length > 0) {
+        users = activeStreaks.map((s) => ({
+          userId: s.user?.id || s.userId,
+          name: s.user?.name || 'Scholar',
+          email: s.user?.email || '',
+          streak: s.currentStreak,
+          bestStreak: s.bestStreak,
+          lastVisitDate: s.lastVisitDate,
+        }));
+      }
+    } catch (err) {
+      console.warn('[internal.controller] user_streaks query fallback:', err.message);
+    }
+
+    if (users.length === 0) {
+      const activeLeaderboardEntries = await prisma.leaderboard.findMany({
+        where: {
+          streak: { gt: 0 },
+        },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+      });
+
+      users = activeLeaderboardEntries.map((e) => ({
+        userId: e.user?.id,
+        name: e.user?.name,
+        email: e.user?.email,
+        streak: e.streak,
+      }));
+    }
+
+    return res.json({ users, count: users.length });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function checkLapsedStreaksInternal(req, res, next) {
+  try {
+    const result = await checkAndResetLapsedStreaks();
+    return res.json({
+      status: 'ok',
+      message: `Checked ${result.checkedUsers} active streaks, reset ${result.resetCount} lapsed streaks.`,
+      ...result,
+      timestamp: new Date().toISOString(),
     });
-
-    const users = activeLeaderboardEntries.map((e) => ({
-      userId: e.user.id,
-      name: e.user.name,
-      email: e.user.email,
-      streak: e.streak,
-    }));
-
-    return res.json({ users });
   } catch (err) {
     next(err);
   }

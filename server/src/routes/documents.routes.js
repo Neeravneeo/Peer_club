@@ -12,7 +12,17 @@ export const documentsRouter = Router();
 
 documentsRouter.use(requireAuth);
 
-documentsRouter.post('/', upload.single('file'), uploadDocument);
+const uploadFlexible = (req, res, next) => {
+  upload.fields([{ name: 'file', maxCount: 1 }, { name: 'document', maxCount: 1 }])(req, res, (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    if (req.files) {
+      req.file = req.files['document']?.[0] || req.files['file']?.[0];
+    }
+    next();
+  });
+};
+
+documentsRouter.post('/', uploadFlexible, uploadDocument);
 documentsRouter.get('/', listDocuments);
 documentsRouter.get('/:id', getDocument);
 documentsRouter.delete('/:id', deleteDocument);

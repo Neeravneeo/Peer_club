@@ -21,13 +21,13 @@ export function RecentQuizzes({ attempts = [], totalQuizzes = 0 }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="font-bold text-lg text-carbon-ink tracking-tight">
+          <h3 className="font-semibold text-base text-white tracking-tight">
             Recent Practice Quizzes
           </h3>
         </div>
         <Link
           to="/quizzes"
-          className="text-xs font-semibold text-carbon-ink hover:underline flex items-center gap-1 group"
+          className="text-xs font-medium text-[#8a8f98] hover:text-white flex items-center gap-1 group transition-colors"
         >
           View All ({totalQuizzes}){' '}
           <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -35,14 +35,14 @@ export function RecentQuizzes({ attempts = [], totalQuizzes = 0 }) {
       </div>
 
       {attempts.length === 0 ? (
-        <Card className="border-border bg-pure-white p-8 text-center space-y-3 rounded-[24px]">
-          <div className="w-12 h-12 rounded-full bg-surface-elevated flex items-center justify-center mx-auto text-ash">
-            <Brain className="w-6 h-6" />
+        <Card className="border border-white/[0.08] bg-[#0d0e11]/80 p-8 text-center space-y-3 rounded-2xl">
+          <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mx-auto text-[#8a8f98]">
+            <Brain className="w-5 h-5 text-[#8f9bff]" />
           </div>
-          <p className="text-sm font-semibold text-carbon-ink">
+          <p className="text-sm font-medium text-white">
             No quiz attempts recorded yet
           </p>
-          <p className="text-xs text-ash max-w-sm mx-auto">
+          <p className="text-xs text-[#8a8f98] max-w-sm mx-auto">
             Test your knowledge with AI-generated quizzes created from your uploaded notes.
           </p>
           <Button asChild size="sm" className="mt-2 text-xs">
@@ -50,26 +50,26 @@ export function RecentQuizzes({ attempts = [], totalQuizzes = 0 }) {
           </Button>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {attempts.map((attempt) => (
             <Card
               key={attempt.id}
-              className="border-border bg-pure-white hover:border-true-black/60 transition-all p-4 px-5 rounded-[24px] shadow-sm"
+              className="border border-white/[0.08] bg-[#0d0e11]/80 hover:border-white/[0.16] hover:bg-[#121318]/90 transition-all p-4 px-5 rounded-xl shadow-sm"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1 min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-bold text-carbon-ink text-sm truncate">
+                    <p className="font-medium text-white text-sm truncate">
                       {attempt.quizTitle}
                     </p>
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-surface-subtle text-ash">
+                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08] text-[#8a8f98]">
                       {attempt.difficulty}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs text-ash">
+                  <div className="flex items-center gap-3 text-xs text-[#8a8f98]">
                     <span>
-                      {attempt.score}/{attempt.totalQuestions} questions correct
+                      {attempt.score}/{attempt.totalQuestions} correct
                     </span>
                     {attempt.timeTakenSeconds && (
                       <>
@@ -80,7 +80,7 @@ export function RecentQuizzes({ attempts = [], totalQuizzes = 0 }) {
                   </div>
 
                   {/* Score Progress Bar */}
-                  <div className="w-full max-w-xs h-1.5 bg-surface-subtle rounded-full overflow-hidden mt-2">
+                  <div className="w-full max-w-xs h-1.5 bg-white/[0.06] rounded-full overflow-hidden mt-2">
                     <div
                       className={`h-full rounded-full ${getBarColor(attempt.percentage)}`}
                       style={{ width: `${Math.min(100, attempt.percentage)}%` }}
@@ -90,14 +90,14 @@ export function RecentQuizzes({ attempts = [], totalQuizzes = 0 }) {
 
                 <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
                   <span
-                    className={`text-xs font-bold px-2.5 py-1 rounded-full border ${getScoreColor(
+                    className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getScoreColor(
                       attempt.percentage
                     )}`}
                   >
                     {attempt.percentage}%
                   </span>
 
-                  <Button asChild size="sm" variant="outline" className="text-xs gap-1">
+                  <Button asChild size="sm" variant="secondary" className="text-xs gap-1">
                     <Link to={`/quiz/${attempt.quizId}`}>
                       Retake <ChevronRight className="w-3.5 h-3.5" />
                     </Link>

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "vite build && wrangler deploy",
+    "pages:deploy": "vite build && wrangler pages deploy dist --project-name peer-club"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

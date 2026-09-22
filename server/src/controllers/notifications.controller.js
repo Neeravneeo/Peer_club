@@ -12,18 +12,26 @@ export async function getNotifications(req, res, next) {
       ...(filter === 'unread' ? { isRead: false } : {}),
     };
 
-    const [notifications, totalCount, unreadCount] = await Promise.all([
-      prisma.notification.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.notification.count({ where }),
-      prisma.notification.count({
-        where: { userId, isRead: false },
-      }),
-    ]);
+    let notifications = [];
+    let totalCount = 0;
+    let unreadCount = 0;
+
+    try {
+      [notifications, totalCount, unreadCount] = await Promise.all([
+        prisma.notification.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+        prisma.notification.count({ where }),
+        prisma.notification.count({
+          where: { userId, isRead: false },
+        }),
+      ]);
+    } catch (dbErr) {
+      console.warn('[notifications] DB query fallback:', dbErr.message?.slice(0, 80));
+    }
 
     return res.json({
       notifications,

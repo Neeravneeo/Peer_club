@@ -20,12 +20,15 @@ enum NotificationType {
 }
 
 model User {
-  id        String   @id @default(uuid()) @map("_id")
-  name      String
-  email     String   @unique
-  password  String   // Hashed password
-  avatar    String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid()) @map("_id")
+  name        String
+  email       String   @unique
+  password    String   // Hashed password
+  avatar      String?
+  bio         String?  // Max 150 words
+  linkedinUrl String?
+  githubUrl   String?
+  createdAt   DateTime @default(now())
 
   // Relations
   administeredRooms StudyRoom[]    @relation("RoomAdmin")
@@ -34,6 +37,8 @@ model User {
   studySessions     StudySession[]
   leaderboards      Leaderboard[]
   notifications     Notification[]
+  streak            UserStreak?
+  streakHistory     StreakHistory[]
 
   @@map("users")
 }
@@ -154,3 +159,37 @@ model Notification {
   @@index([userId])
   @@map("notifications")
 }
+
+model UserStreak {
+  id                 String    @id @default(uuid()) @map("_id")
+  userId             String    @unique @map("user_id")
+  currentStreak      Int       @default(0) @map("current_streak")
+  bestStreak         Int       @default(0) @map("best_streak")
+  lastVisitDate      DateTime? @db.Date @map("last_visit_date")
+  lastStudyActivity  DateTime? @map("last_study_activity")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lastVisitDate])
+  @@map("user_streaks")
+}
+
+model StreakHistory {
+  id           String   @id @default(uuid()) @map("_id")
+  userId       String   @map("user_id")
+  activityType String   @map("activity_type")
+  streakCount  Int      @map("streak_count")
+  recordedAt   DateTime @default(now()) @map("recorded_at")
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([recordedAt])
+  @@map("streak_history")
+}
+

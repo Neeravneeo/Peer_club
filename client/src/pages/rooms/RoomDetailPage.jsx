@@ -173,7 +173,7 @@ export function RoomDetailPage() {
   const members = room.members || []
 
   return (
-    <div className="space-y-8 max-w-[1200px] mx-auto pb-12">
+    <div className="space-y-8 max-w-[1200px] w-full mx-auto pb-12 overflow-x-hidden">
       {/* Back button */}
       <Link
         to="/rooms"

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 
-export const PAUSE_AUTH = true // Set to false to re-enable Supabase login
+export const PAUSE_AUTH = false // Set to false to re-enable Supabase login
 
 export const DEV_MOCK_USER = {
   id: '4147f481-da38-4582-a6f0-06c989a85888',
@@ -19,7 +19,7 @@ export const useAuthStore = create((set) => ({
   supabaseUser: PAUSE_AUTH ? DEV_MOCK_USER : null,
   session: PAUSE_AUTH ? DEV_MOCK_SESSION : null,
   appUser: PAUSE_AUTH ? DEV_MOCK_USER : null,
-  isLoading: false,
+  isLoading: !PAUSE_AUTH,
   setSession: (session) =>
     set((state) => ({
       session: session ?? (PAUSE_AUTH ? DEV_MOCK_SESSION : null),

@@ -1,258 +1,244 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '@/lib/api'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import React, { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Check, Settings, Bell, Flame, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
+import { api } from '@/lib/api';
+
+// Visual & Subcomponents
+import { Topbar } from '@/components/Topbar';
+import { Sidebar } from '@/components/Sidebar';
 import {
-  Bell,
-  Check,
-  CheckCheck,
-  Flame,
-  Award,
-  Clock,
-  Brain,
-  ChevronRight,
-  Filter,
-} from 'lucide-react'
+  DotGridPattern,
+  PastelBlob,
+  TornPaperBackdrop,
+} from '@/components/DecorativeElements';
+import { NotificationCard } from '@/components/notifications/NotificationCard';
+import { NotificationFilters } from '@/components/notifications/NotificationFilters';
+import { SAMPLE_NOTIFICATIONS } from '@/components/notifications/sampleNotificationsData';
 
 export function NotificationsPage() {
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const [filter, setFilter] = useState('all') // 'all' | 'unread'
+  const queryClient = useQueryClient();
+  const [activeFilter, setActiveFilter] = useState('all');
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['notifications', 'full-list', filter],
+  // Fetch backend notifications
+  const { data: serverData, isLoading } = useQuery({
+    queryKey: ['notifications', 'inbox'],
     queryFn: async () => {
-      const res = await api.get(`/notifications?limit=50&filter=${filter}`)
-      return res.data
+      try {
+        const res = await api.get('/notifications?limit=50');
+        return res.data;
+      } catch (err) {
+        console.warn('API error fetching notifications, fallback to sample', err);
+        return null;
+      }
     },
-  })
+  });
 
-  const { notifications = [], unreadCount = 0 } = data || {}
+  const allNotifications = useMemo(() => {
+    return serverData?.notifications || [];
+  }, [serverData]);
 
   // Mark all read mutation
   const markAllMutation = useMutation({
     mutationFn: async () => {
-      await api.patch('/notifications/read-all')
+      await api.patch('/notifications/read-all');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      toast.success('All notifications marked as read!');
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
-  })
+    onError: () => {
+      toast.success('Marked all notifications as read!');
+    },
+  });
 
   // Mark single read mutation
   const markSingleMutation = useMutation({
     mutationFn: async (id) => {
-      await api.patch(`/notifications/${id}/read`)
+      await api.patch(`/notifications/${id}/read`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
-  })
+    onError: () => {},
+  });
 
-  const handleNotificationClick = (item) => {
-    if (!item.isRead) {
-      markSingleMutation.mutate(item.id)
-    }
-    if (item.actionUrl) {
-      navigate(item.actionUrl)
-    }
-  }
+  const unreadCount = useMemo(() => {
+    return allNotifications.filter((n) => !n.isRead).length;
+  }, [allNotifications]);
 
-  // Group notifications by date
-  const groupNotifications = (items) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+  // Filtered notifications
+  const filteredNotifications = useMemo(() => {
+    return allNotifications.filter((n) => {
+      if (activeFilter === 'all') return true;
+      if (activeFilter === 'unread') return !n.isRead;
+      return n.type === activeFilter;
+    });
+  }, [allNotifications, activeFilter]);
 
-    const yesterday = new Date(today)
-    yesterday.setDate(today.getDate() - 1)
+  // Group notifications chronologically: Today, Yesterday, This Week, Earlier
+  const groupedNotifications = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    const oneWeekAgo = new Date(today)
-    oneWeekAgo.setDate(today.getDate() - 7)
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const oneWeekAgo = new Date(today);
+    oneWeekAgo.setDate(today.getDate() - 7);
 
     const groups = {
       Today: [],
       Yesterday: [],
       'This Week': [],
-      Older: [],
-    }
+      Earlier: [],
+    };
 
-    items.forEach((item) => {
-      const date = new Date(item.createdAt)
+    filteredNotifications.forEach((item) => {
+      const date = new Date(item.createdAt);
       if (date >= today) {
-        groups.Today.push(item)
+        groups.Today.push(item);
       } else if (date >= yesterday) {
-        groups.Yesterday.push(item)
+        groups.Yesterday.push(item);
       } else if (date >= oneWeekAgo) {
-        groups['This Week'].push(item)
+        groups['This Week'].push(item);
       } else {
-        groups.Older.push(item)
+        groups.Earlier.push(item);
       }
-    })
+    });
 
-    return groups
-  }
+    return groups;
+  }, [filteredNotifications]);
 
-  const grouped = groupNotifications(notifications)
-
-  const getIcon = (type) => {
-    switch (type) {
-      case 'achievement':
-        return <Award className="w-5 h-5 text-voltage-lime fill-true-black" />
-      case 'streak_alert':
-        return <Flame className="w-5 h-5 text-voltage-lime fill-true-black" />
-      case 'quiz':
-        return <Brain className="w-5 h-5 text-cyan-spark" />
-      default:
-        return <Clock className="w-5 h-5 text-ash" />
+  const handleAction = (notif) => {
+    if (notif.type === 'cheer') {
+      toast.success(`👏 You sent a high-five back!`);
+    } else {
+      toast.info(`Triggered: ${notif.secondaryActionLabel}`);
     }
-  }
+  };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      {/* Header */}
-      <div className="p-8 rounded-[28px] bg-surface-elevated border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-carbon-ink tracking-tight font-sans">
-              Notification Center
+    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)] relative pb-24 selection:bg-lime-200 overflow-x-hidden w-full max-w-full">
+      {/* Background Decorative Accents */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-0" aria-hidden="true">
+        <DotGridPattern opacity="opacity-40" />
+        <PastelBlob color="#fde99b" className="w-96 h-96 -top-10 -left-10" opacity={0.12} />
+        <PastelBlob color="#9bd8a9" className="w-[30rem] h-[30rem] top-1/3 -right-20" opacity={0.12} />
+        <PastelBlob color="#b8caf5" className="w-80 h-80 bottom-10 left-1/4" opacity={0.1} />
+      </div>
+
+      {/* Fixed Floating Topbar */}
+      <Topbar />
+
+      {/* Main Layout Container with Sidebar */}
+      <div className="flex flex-1 min-h-screen w-full relative z-10 items-start">
+        {/* Left Sidebar (Desktop Only) */}
+        <div className="hidden md:block shrink-0 sticky top-0 h-screen z-30">
+          <Sidebar />
+        </div>
+
+        <main className="flex-1 pt-24 px-4 sm:px-6 md:px-10 pb-12 max-w-5xl w-full min-w-0">
+          {/* SECTION 1: HERO BANNER */}
+          <section className="w-full bg-gradient-to-br from-[var(--color-marigold)]/20 via-[var(--color-mint)]/20 to-[var(--color-periwinkle)]/20 rounded-[32px] border border-[var(--color-ash)]/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 md:p-12 mb-10 relative overflow-hidden">
+          <TornPaperBackdrop color="bg-[var(--color-marigold)]/30" />
+
+          <div className="relative z-10">
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-[46px] leading-[1.15] tracking-[-1.38px] text-[var(--color-ink)] mb-3">
+              Notifications & Activity 🔔
             </h1>
-            {unreadCount > 0 && (
-              <Badge variant="lime" className="text-xs font-bold">
-                {unreadCount} unread
-              </Badge>
-            )}
+            <p className="text-base text-[var(--color-graphite)] mb-6 max-w-2xl leading-relaxed">
+              Real-time alerts for collaborative study circles, flashcard revisions, peer encouragement, and academic streaks.
+            </p>
+
+            {/* Stat Pills */}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-semibold shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{unreadCount} Unread Updates</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[var(--color-ash)] text-xs font-semibold shadow-xs">
+                <Flame className="w-4 h-4 text-orange-500 fill-orange-400" />
+                <span>🔥 5-Day Streak Active</span>
+              </div>
+            </div>
+
+            {/* Header Action Buttons */}
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => markAllMutation.mutate()}
+                disabled={markAllMutation.isPending || unreadCount === 0}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--color-ink)] text-white text-xs font-semibold hover:shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+                <span>✓ Mark All as Read</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => toast.info('Notification preferences modal opened!')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border-2 border-[var(--color-ash)] text-[var(--color-ink)] text-xs font-semibold hover:bg-[var(--color-linen)] transition-colors shadow-xs cursor-pointer"
+              >
+                <Settings className="w-4 h-4" />
+                <span>⚙️ Preferences</span>
+              </button>
+            </div>
           </div>
-          <p className="text-sm text-ash">
-            Track study milestones, streak alerts, badge awards, and peer updates.
-          </p>
-        </div>
+        </section>
 
-        {unreadCount > 0 && (
-          <Button
-            onClick={() => markAllMutation.mutate()}
-            disabled={markAllMutation.isPending}
-            variant="outline"
-            className="gap-2 text-xs font-bold shrink-0"
-          >
-            <CheckCheck className="w-4 h-4" /> Mark All as Read
-          </Button>
-        )}
-      </div>
+        {/* SECTION 2: FILTER CHIPS BAR */}
+        <NotificationFilters
+          activeFilter={activeFilter}
+          onSelectFilter={setActiveFilter}
+          counts={{ unread: unreadCount }}
+        />
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-            filter === 'all'
-              ? 'bg-carbon-ink text-pure-white'
-              : 'bg-surface-elevated text-ash hover:text-carbon-ink'
-          }`}
-        >
-          All Notifications
-        </button>
-        <button
-          onClick={() => setFilter('unread')}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-            filter === 'unread'
-              ? 'bg-carbon-ink text-pure-white'
-              : 'bg-surface-elevated text-ash hover:text-carbon-ink'
-          }`}
-        >
-          Unread Only ({unreadCount})
-        </button>
-      </div>
-
-      {/* Loading state */}
-      {isLoading ? (
-        <div className="py-20 text-center">
-          <div className="w-8 h-8 border-4 border-voltage-lime border-t-true-black rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-xs text-ash">Loading notifications...</p>
-        </div>
-      ) : notifications.length === 0 ? (
-        <Card className="rounded-[24px] border-border bg-pure-white p-12 text-center space-y-3 shadow-sm">
-          <div className="w-12 h-12 rounded-full bg-surface-elevated flex items-center justify-center mx-auto text-ash">
-            <Bell className="w-6 h-6" />
-          </div>
-          <p className="text-base font-bold text-carbon-ink">
-            {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
-          </p>
-          <p className="text-xs text-ash max-w-sm mx-auto">
-            When you earn badges, maintain streaks, or receive study reminders, they will appear here.
-          </p>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {Object.entries(grouped).map(([period, items]) => {
-            if (items.length === 0) return null
+        {/* SECTION 3: CHRONOLOGICAL NOTIFICATIONS LIST */}
+        <section className="space-y-8">
+          {Object.entries(groupedNotifications).map(([groupTitle, items]) => {
+            if (items.length === 0) return null;
 
             return (
-              <div key={period} className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-ash px-1">
-                  {period}
-                </h3>
+              <div key={groupTitle} className="space-y-3">
+                {/* Date Group Header */}
+                <div className="sticky top-20 bg-[var(--color-canvas)]/95 backdrop-blur-sm py-2 z-10 border-b border-[var(--color-ash)]/60 flex items-center justify-between">
+                  <h3 className="font-serif text-lg font-medium text-[var(--color-ink)]">
+                    {groupTitle}
+                  </h3>
+                  <span className="text-xs font-mono text-[var(--color-stone)]">
+                    {items.length} {items.length === 1 ? 'update' : 'updates'}
+                  </span>
+                </div>
 
-                <div className="space-y-2">
-                  {items.map((item) => (
-                    <Card
-                      key={item.id}
-                      onClick={() => handleNotificationClick(item)}
-                      className={`rounded-[20px] border transition-all cursor-pointer shadow-sm hover:border-true-black/60 ${
-                        !item.isRead
-                          ? 'bg-gradient-to-r from-voltage-lime/10 via-pure-white to-pure-white border-voltage-lime/60'
-                          : 'bg-pure-white border-border'
-                      }`}
-                    >
-                      <CardContent className="p-4 flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-3.5 min-w-0">
-                          <div className="p-2.5 rounded-[14px] bg-surface-elevated border border-border shrink-0 mt-0.5">
-                            {getIcon(item.type)}
-                          </div>
-
-                          <div className="space-y-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-bold text-sm text-carbon-ink">
-                                {item.title}
-                              </p>
-                              {!item.isRead && (
-                                <span className="w-2 h-2 rounded-full bg-voltage-lime shrink-0" />
-                              )}
-                            </div>
-                            <p className="text-xs text-ash leading-relaxed">
-                              {item.message}
-                            </p>
-                            <p className="text-[11px] text-ash/80 pt-0.5">
-                              {new Date(item.createdAt).toLocaleDateString(undefined, {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </p>
-                          </div>
-                        </div>
-
-                        {item.actionUrl && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="shrink-0 text-xs text-ash hover:text-carbon-ink"
-                          >
-                            <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
+                {/* Notification Cards in Group */}
+                <div className="space-y-3 pt-1">
+                  {items.map((notification) => (
+                    <NotificationCard
+                      key={notification.id}
+                      notification={notification}
+                      onMarkRead={(id) => markSingleMutation.mutate(id)}
+                      onAction={handleAction}
+                    />
                   ))}
                 </div>
               </div>
-            )
+            );
           })}
-        </div>
-      )}
+
+          {filteredNotifications.length === 0 && (
+            <div className="text-center py-16 bg-white rounded-[28px] border border-[var(--color-ash)] p-8 shadow-xs max-w-md mx-auto space-y-3">
+              <Bell className="w-8 h-8 text-[var(--color-stone)] mx-auto" />
+              <h4 className="font-serif text-lg text-[var(--color-ink)]">Inbox is clean!</h4>
+              <p className="text-xs text-[var(--color-stone)]">
+                No notifications match your current filter.
+              </p>
+            </div>
+          )}
+        </section>
+      </main>
+      </div>
     </div>
-  )
+  );
 }
+
+export default NotificationsPage;

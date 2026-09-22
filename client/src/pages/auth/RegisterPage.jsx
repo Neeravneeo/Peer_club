@@ -1,32 +1,36 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { supabase } from '../../lib/supabase'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
-import { Label } from '../../components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card'
-import { GoogleAuthButton } from '../../components/auth/GoogleAuthButton'
-import { toast } from 'sonner'
-import { Brain, ArrowRight } from 'lucide-react'
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { supabase } from '../../lib/supabase';
+import { CloudBackground } from '../../components/CloudBackground';
+import { BrainIcon, GoogleIcon, EyeIcon, EyeOffIcon, Spinner } from '../../components/auth/AuthIcons';
+import { toast } from 'sonner';
 
 const registerSchema = z
   .object({
-    name: z.string().min(2, 'Name must be at least 2 characters'),
+    fullName: z.string().min(2, 'Name must be at least 2 characters').max(50, 'Max 50 characters'),
     email: z.string().email('Please enter a valid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Z]/, 'Must contain at least 1 uppercase letter')
+      .regex(/[0-9]/, 'Must contain at least 1 number'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
-  })
+  });
 
 export function RegisterPage() {
-  const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
 
   const {
     register,
@@ -34,139 +38,225 @@ export function RegisterPage() {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
-  })
+    mode: 'onTouched',
+  });
 
   const onSubmit = async (values) => {
     try {
-      setLoading(true)
+      setLoading(true);
+      setServerError('');
+
       const { data, error } = await supabase.auth.signUp({
-        email: values.email,
+        email: values.email.trim(),
         password: values.password,
         options: {
           data: {
-            name: values.name,
-            full_name: values.name,
+            name: values.fullName.trim(),
+            full_name: values.fullName.trim(),
           },
         },
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
-      if (data.session) {
-        toast.success('Account created successfully!')
-        navigate('/dashboard')
+      if (data?.session) {
+        toast.success('Account created successfully!');
+        navigate('/dashboard', { replace: true });
       } else {
-        toast.success('Verification email sent! Check your inbox.')
-        navigate('/login')
+        toast.success('Verification email sent!');
+        navigate('/verify-email', { state: { email: values.email } });
       }
     } catch (err) {
-      toast.error(err.message || 'Failed to create account')
+      const msg = err.message || 'Failed to create account';
+      setServerError(msg);
+      toast.error(msg);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      setGoogleLoading(true);
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (oauthError) throw oauthError;
+    } catch (err) {
+      toast.error(err.message || 'Failed to connect with Google');
+      setGoogleLoading(false);
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-pure-white">
-      <div className="flex items-center gap-2 mb-8">
-        <div className="flex items-center justify-center w-10 h-10 rounded-[8px] bg-voltage-lime text-true-black font-bold">
-          <Brain className="w-6 h-6" />
-        </div>
-        <span className="text-2xl font-bold tracking-tight text-carbon-ink">
-          Peer Club
-        </span>
-      </div>
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-8 selection:bg-blue-500/20 selection:text-blue-900 overflow-x-hidden">
+      <CloudBackground />
 
-      <Card className="w-full max-w-md border-border bg-pure-white rounded-[24px]">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl font-extrabold text-carbon-ink">Create an account</CardTitle>
-          <CardDescription>Join peer study groups & learn faster with AI</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <GoogleAuthButton />
-
-          <div className="relative flex items-center justify-center my-4">
-            <div className="border-t border-border w-full absolute" />
-            <span className="bg-pure-white px-3 text-xs uppercase tracking-wider text-ash relative z-10 font-semibold">
-              or register with email
-            </span>
+      <div className="relative z-10 w-full max-w-md my-auto">
+        {/* Floating Logo - Mathematically Centered */}
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20">
+          <div className="w-12 h-12 rounded-2xl bg-white shadow-md flex items-center justify-center border border-white/80 animate-logoBob">
+            <BrainIcon className="w-6 h-6 text-emerald-600" />
           </div>
+        </div>
+
+        {/* Compact Card Container */}
+        <div className="bg-[#F4F7F9] backdrop-blur-xl border border-white/80 rounded-3xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.1)] p-8 pt-10">
+          <h1 className="text-2xl font-bold text-gray-900 text-center mb-1 tracking-tight">
+            Create your account
+          </h1>
+          <p className="text-sm text-gray-500 text-center mb-6 leading-relaxed">
+            Start your free Peer Club account. No credit card required.
+          </p>
+
+          {serverError && (
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+              {serverError}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-xs font-semibold text-ash uppercase tracking-wider">
+            {/* Full Name */}
+            <div>
+              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1.5 block">
                 Full Name
-              </Label>
-              <Input
-                id="name"
-                placeholder="Alex Morgan"
-                {...register('name')}
+              </label>
+              <input
+                type="text"
+                placeholder="Neerav Goyal"
+                {...register('fullName')}
+                className={`w-full h-11 px-4 rounded-xl bg-gray-200/60 border ${
+                  errors.fullName ? 'border-red-400 focus:ring-red-100' : 'border-transparent focus:border-blue-400 focus:bg-white'
+                } text-[15px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all`}
               />
-              {errors.name && (
-                <p className="text-xs text-accent-red">{errors.name.message}</p>
-              )}
+              {errors.fullName && <p className="text-xs text-red-500 mt-1 ml-1 font-medium">{errors.fullName.message}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs font-semibold text-ash uppercase tracking-wider">
-                Email
-              </Label>
-              <Input
-                id="email"
+            {/* Email */}
+            <div>
+              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1.5 block">
+                Your Email
+              </label>
+              <input
                 type="email"
-                placeholder="student@university.edu"
+                placeholder="name@example.com"
                 {...register('email')}
+                className={`w-full h-11 px-4 rounded-xl bg-gray-200/60 border ${
+                  errors.email ? 'border-red-400 focus:ring-red-100' : 'border-transparent focus:border-blue-400 focus:bg-white'
+                } text-[15px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all`}
               />
-              {errors.email && (
-                <p className="text-xs text-accent-red">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-xs text-red-500 mt-1 ml-1 font-medium">{errors.email.message}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-xs font-semibold text-ash uppercase tracking-wider">
+            {/* Password */}
+            <div>
+              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1.5 block">
                 Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register('password')}
-              />
-              {errors.password && (
-                <p className="text-xs text-accent-red">{errors.password.message}</p>
-              )}
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Min 8 chars, 1 uppercase, 1 number"
+                  {...register('password')}
+                  className={`w-full h-11 px-4 pr-11 rounded-xl bg-gray-200/60 border ${
+                    errors.password ? 'border-red-400 focus:ring-red-100' : 'border-transparent focus:border-blue-400 focus:bg-white'
+                  } text-[15px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <EyeOffIcon className="w-4.5 h-4.5" /> : <EyeIcon className="w-4.5 h-4.5" />}
+                </button>
+              </div>
+              {errors.password && <p className="text-xs text-red-500 mt-1 ml-1 font-medium">{errors.password.message}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-xs font-semibold text-ash uppercase tracking-wider">
+            {/* Confirm Password */}
+            <div>
+              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1.5 block">
                 Confirm Password
-              </Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                {...register('confirmPassword')}
-              />
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Repeat your password"
+                  {...register('confirmPassword')}
+                  className={`w-full h-11 px-4 pr-11 rounded-xl bg-gray-200/60 border ${
+                    errors.confirmPassword ? 'border-red-400 focus:ring-red-100' : 'border-transparent focus:border-blue-400 focus:bg-white'
+                  } text-[15px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOffIcon className="w-4.5 h-4.5" /> : <EyeIcon className="w-4.5 h-4.5" />}
+                </button>
+              </div>
               {errors.confirmPassword && (
-                <p className="text-xs text-accent-red">
-                  {errors.confirmPassword.message}
-                </p>
+                <p className="text-xs text-red-500 mt-1 ml-1 font-medium">{errors.confirmPassword.message}</p>
               )}
             </div>
 
-            <Button type="submit" className="w-full gap-2 mt-2" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create Account'}
-              {!loading && <ArrowRight className="w-4 h-4" />}
-            </Button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white font-semibold text-[15px] transition-all transform active:scale-[0.99] shadow-sm flex items-center justify-center mt-2"
+            >
+              {loading ? <Spinner className="w-5 h-5 animate-spin" /> : 'Create Account'}
+            </button>
           </form>
-        </CardContent>
-        <CardFooter className="flex justify-center border-t border-border pt-4 text-sm text-ash">
-          Already have an account?{' '}
-          <Link to="/login" className="ml-1 text-carbon-ink font-bold hover:underline">
-            Sign in
-          </Link>
-        </CardFooter>
-      </Card>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400 font-medium">or</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          {/* SSO Button (Google) */}
+          <div>
+            <button
+              type="button"
+              onClick={handleGoogleSignup}
+              disabled={googleLoading}
+              className="w-full h-11 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center gap-3 text-[15px] font-medium text-gray-700 transition-colors shadow-xs"
+            >
+              {googleLoading ? <Spinner className="w-5 h-5 animate-spin text-gray-600" /> : <GoogleIcon className="w-5 h-5" />}
+              <span>Continue with Google</span>
+            </button>
+          </div>
+
+          {/* Legal Disclaimers */}
+          <div className="mt-5 text-center space-y-1.5">
+            <p className="text-xs text-gray-400 leading-relaxed">
+              By clicking continue, you accept our{' '}
+              <a href="#" className="underline hover:text-gray-600">Terms and Conditions</a> and{' '}
+              <a href="#" className="underline hover:text-gray-600">Privacy Policy</a>.
+            </p>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              This site is protected by reCAPTCHA and the Google{' '}
+              <a href="#" className="underline hover:text-gray-600">Terms and Conditions</a> and{' '}
+              <a href="#" className="underline hover:text-gray-600">Privacy Policy</a> apply.
+            </p>
+          </div>
+
+          {/* Switch to Login */}
+          <p className="text-center text-sm text-gray-600 mt-5">
+            Already have an account?{' '}
+            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold underline underline-offset-2">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
+
+export default RegisterPage;

@@ -1,5 +1,5 @@
 {
-  "name": "Peer Club - AI Flashcard Deck Generator (OpenRouter)",
+  "name": "Peer Club - Adaptive AI Flashcard Deck Generator (OpenRouter)",
   "nodes": [
     {
       "parameters": {
@@ -12,8 +12,18 @@
       "name": "Webhook - Generate Flashcards",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [220, 300],
+      "position": [200, 300],
       "webhookId": "generate-flashcards"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract request inputs\nconst body = $json.body || $json || {};\nconst topic = String(body.topic || body.studyText || body.title || 'General Subject Notes').trim();\nconst score = typeof body.score === 'number' ? Math.max(0, Math.min(100, body.score)) : (typeof body.scorePercentage === 'number' ? Math.max(0, Math.min(100, body.scorePercentage)) : 50);\nconst count = Math.max(1, Math.min(50, Number(body.numberOfCards || body.cardCount || body.count) || 10));\n\n// Format previous cards/questions to avoid duplication\nlet previousCards = [];\nif (Array.isArray(body.previousCards)) {\n  previousCards = body.previousCards.map((c) => typeof c === 'string' ? c : (c.front || c.question || '')).filter(Boolean);\n} else if (Array.isArray(body.previousQuestions)) {\n  previousCards = body.previousQuestions.map((q) => typeof q === 'string' ? q : (q.question || q.questionText || '')).filter(Boolean);\n} else if (typeof body.previousCards === 'string' && body.previousCards.trim()) {\n  previousCards = [body.previousCards.trim()];\n}\n\n// Format weak topics\nlet weakTopics = [];\nif (Array.isArray(body.weakTopics)) {\n  weakTopics = body.weakTopics.map(String).filter(Boolean);\n} else if (typeof body.weakTopics === 'string' && body.weakTopics.trim()) {\n  weakTopics = body.weakTopics.split(',').map((s) => s.trim()).filter(Boolean);\n}\n\n// DIFFICULTY RULES:\n// 0-30%: 70% Easy (Foundations), 30% Medium, 0% Hard\n// 31-50%: 50% Easy, 40% Medium, 10% Hard\n// 51-70%: 30% Easy, 50% Medium, 20% Hard\n// 71-85%: 20% Easy, 50% Medium, 30% Hard\n// 86-100%: 10% Easy, 40% Medium, 50% Hard\nlet easyPct = 0.30, medPct = 0.50, hardPct = 0.20;\nif (score <= 30) {\n  easyPct = 0.70; medPct = 0.30; hardPct = 0.00;\n} else if (score <= 50) {\n  easyPct = 0.50; medPct = 0.40; hardPct = 0.10;\n} else if (score <= 70) {\n  easyPct = 0.30; medPct = 0.50; hardPct = 0.20;\n} else if (score <= 85) {\n  easyPct = 0.20; medPct = 0.50; hardPct = 0.30;\n} else {\n  easyPct = 0.10; medPct = 0.40; hardPct = 0.50;\n}\n\n// Convert percentages into exact integer number of flashcards\nlet easyCount = Math.round(count * easyPct);\nlet hardCount = Math.round(count * hardPct);\n\n// Guarantee 0% Hard in 0-30% tier\nif (score <= 30) {\n  hardCount = 0;\n}\n\nlet medCount = count - (easyCount + hardCount);\n\nif (medCount < 0) {\n  easyCount += medCount;\n  medCount = 0;\n}\n\nconst totalAllocated = easyCount + medCount + hardCount;\nif (totalAllocated !== count) {\n  medCount += (count - totalAllocated);\n}\n\nconst distribution = {\n  easy: Math.max(0, easyCount),\n  medium: Math.max(0, medCount),\n  hard: Math.max(0, hardCount)\n};\n\nreturn [{\n  json: {\n    topic,\n    score,\n    count,\n    distribution,\n    previousCards,\n    weakTopics,\n    rawStudyText: body.studyText || topic\n  }\n}];"
+      },
+      "id": "compute-flashcard-distribution",
+      "name": "Compute Adaptive Distribution",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 300]
     },
     {
       "parameters": {
@@ -36,32 +46,33 @@
             },
             {
               "name": "X-Title",
-              "value": "Peer Club"
+              "value": "Peer Club Adaptive Flashcards"
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{\nJSON.stringify({\n  model: \"nex-agi/nex-n2.5-pro:free\",\n  temperature: 0.3,\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are an educational tutor creating active recall flashcards. Output ONLY a valid JSON array of objects with front and back. No conversational filler or markdown.\"\n    },\n    {\n      role: \"user\",\n      content: \"Generate \" + ($json.body.cardCount || 10) + \" flashcards from this study material:\\n\\n\" + ($json.body.studyText || $json.body.title || \"Computer Science & Engineering\") + \"\\n\\nOutput Format:\\n[{\\\"front\\\": \\\"Key Concept or Question\\\", \\\"back\\\": \\\"Clear, concise explanation or definition\\\"}]\"\n    }\n  ]\n})\n}}",
+        "jsonBody": "={{\nJSON.stringify({\n  model: \"qwen/qwen3.8-27b:free\",\n  temperature: 0.3,\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are an Adaptive Flashcard Deck Generator for Peer Club. Your job is to generate a personalized flashcard deck based on the learner's current score and mastery. OUTPUT ONLY VALID JSON matching the required schema with no conversational wrapper or markdown code fences.\"\n    },\n    {\n      role: \"user\",\n      content: `ADAPTIVE FLASHCARD GENERATION SPECIFICATION:\\nTopic: ${$json.topic}\\nLearner Mastery Score: ${$json.score}%\\nTotal Flashcards: ${$json.count}\\nExact Target Difficulty Distribution:\\n- Easy: ${$json.distribution.easy}\\n- Medium: ${$json.distribution.medium}\\n- Hard: ${$json.distribution.hard}\\n\\nWeak Topics: ${$json.weakTopics.length > 0 ? $json.weakTopics.join(', ') : 'None specified (cover balanced key concepts)'}\\nPrevious Flashcards/Concepts (DO NOT REPEAT):\\n${$json.previousCards.length > 0 ? $json.previousCards.map((c, i) => `${i + 1}. ${c}`).join('\\n') : 'None'}\\n\\nDIFFICULTY DEFINITIONS FOR FLASHCARDS:\\n- EASY (Foundational Recall): Basic definitions, terminology, core facts, formulas, and fundamental concept recognition.\\n- MEDIUM (Application & Mechanisms): Understanding processes, comparing two related concepts, cause-and-effect mechanisms, and multi-step reasoning.\\n- HARD (Advanced Analysis & Edge Cases): Edge cases, trade-offs, troubleshooting/diagnostic dilemmas, multi-concept synthesis, failure modes, and practical problem-solving.\\n\\nADAPTIVE BEHAVIOR:\\n1. Generate exactly ${$json.count} flashcards distributed as exactly ${$json.distribution.easy} Easy, ${$json.distribution.medium} Medium, and ${$json.distribution.hard} Hard.\\n2. If weak topics are provided, prioritize those topics while strictly maintaining the difficulty distribution.\\n3. Do not repeat concepts or questions from previous_cards.\\n4. Hard flashcards must require deeper analytical thinking and scenario evaluation than Easy flashcards.\\n5. Avoid making flashcards difficult merely through verbose or convoluted phrasing.\\n6. Every card must have an engaging Front (prompt/question), a comprehensive yet concise Back (explanation/answer), a key takeaway, and an identified subtopic.\\n7. Return the difficulty level for every flashcard.\\n\\nOUTPUT ONLY VALID JSON with this exact structure:\\n{\\n  \\\"topic\\\": \\\"${$json.topic.replace(/\"/g, '\\\\\"')}\\\",\\n  \\\"score\\\": ${$json.score},\\n  \\\"difficulty_distribution\\\": {\\n    \\\"easy\\\": ${$json.distribution.easy},\\n    \\\"medium\\\": ${$json.distribution.medium},\\n    \\\"hard\\\": ${$json.distribution.hard}\\n  },\\n  \\\"flashcards\\\": [\\n    {\\n      \\\"id\\\": \\\"c1\\\",\\n      \\\"difficulty\\\": \\\"easy\\\",\\n      \\\"front\\\": \\\"...\\\",\\n      \\\"back\\\": \\\"...\\\",\\n      \\\"key_takeaway\\\": \\\"...\\\",\\n      \\\"subtopic\\\": \\\"...\\\"\\n    }\\n  ]\\n}`\n    }\n  ]\n})\n}}",
         "options": {
-          "timeout": 120000
+          "timeout": 120000,
+          "allowUnauthorizedCerts": true
         }
       },
       "id": "openrouter-flashcards",
-      "name": "OpenRouter - nex-n2.5-pro:free",
+      "name": "OpenRouter - qwen/qwen3.8-27b:free",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [460, 300]
+      "position": [660, 300]
     },
     {
       "parameters": {
-        "jsCode": "const content = $json.choices?.[0]?.message?.content || '';\nlet cleaned = content.trim();\nif (cleaned.startsWith('```json')) {\n  cleaned = cleaned.replace(/^```json\\s*/, '').replace(/\\s*```$/, '');\n} else if (cleaned.startsWith('```')) {\n  cleaned = cleaned.replace(/^```\\s*/, '').replace(/\\s*```$/, '');\n}\n\nlet flashcards = [];\ntry {\n  flashcards = JSON.parse(cleaned);\n} catch (e) {\n  const match = cleaned.match(/\\[[\\s\\S]*\\]/);\n  if (match) {\n    flashcards = JSON.parse(match[0]);\n  } else {\n    throw new Error('Could not parse flashcards JSON from OpenRouter output');\n  }\n}\n\nconst formatted = (Array.isArray(flashcards) ? flashcards : []).map((c, idx) => ({\n  front: c.front || c.question || c.term || `Concept ${idx + 1}`,\n  back: c.back || c.answer || c.definition || 'Detailed explanation'\n}));\n\nreturn [{\n  json: {\n    success: true,\n    model: 'nex-agi/nex-n2.5-pro:free',\n    count: formatted.length,\n    cards: formatted\n  }\n}];"
+        "jsCode": "const prev = $('Compute Adaptive Distribution').first().json;\nconst content = $json.choices?.[0]?.message?.content || '';\nlet cleaned = content.trim();\nif (cleaned.startsWith('```json')) {\n  cleaned = cleaned.replace(/^```json\\s*/, '').replace(/\\s*```$/, '');\n} else if (cleaned.startsWith('```')) {\n  cleaned = cleaned.replace(/^```\\s*/, '').replace(/\\s*```$/, '');\n}\n\nlet parsed = null;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (match) {\n    parsed = JSON.parse(match[0]);\n  } else {\n    throw new Error('Could not parse adaptive flashcards JSON from model response');\n  }\n}\n\nconst rawCards = Array.isArray(parsed?.flashcards) ? parsed.flashcards : (Array.isArray(parsed?.cards) ? parsed.cards : (Array.isArray(parsed) ? parsed : []));\n\nconst formattedFlashcards = rawCards.map((c, idx) => ({\n  id: c.id || `c${idx + 1}`,\n  difficulty: (c.difficulty || 'medium').toLowerCase(),\n  front: c.front || c.question || c.term || `Concept ${idx + 1}`,\n  back: c.back || c.answer || c.definition || 'Detailed explanation',\n  key_takeaway: c.key_takeaway || c.takeaway || c.summary || 'Essential principle to remember.',\n  subtopic: c.subtopic || c.category || prev.topic\n}));\n\n// Provide backward-compatible 'cards' array as well as the new 'flashcards' property\nreturn [{\n  json: {\n    success: true,\n    topic: parsed?.topic || prev.topic,\n    score: typeof parsed?.score === 'number' ? parsed.score : prev.score,\n    difficulty_distribution: parsed?.difficulty_distribution || prev.distribution,\n    count: formattedFlashcards.length,\n    flashcards: formattedFlashcards,\n    cards: formattedFlashcards.map(f => ({ front: f.front, back: f.back }))\n  }\n}];"
       },
       "id": "format-flashcards",
-      "name": "Parse & Validate Flashcards",
+      "name": "Parse & Validate Adaptive Flashcards",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [700, 300]
+      "position": [900, 300]
     },
     {
       "parameters": {
@@ -72,7 +83,7 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [940, 300]
+      "position": [1140, 300]
     }
   ],
   "connections": {
@@ -80,25 +91,36 @@
       "main": [
         [
           {
-            "node": "OpenRouter - nex-n2.5-pro:free",
+            "node": "Compute Adaptive Distribution",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenRouter - nex-n2.5-pro:free": {
+    "Compute Adaptive Distribution": {
       "main": [
         [
           {
-            "node": "Parse & Validate Flashcards",
+            "node": "OpenRouter - qwen/qwen3.8-27b:free",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse & Validate Flashcards": {
+    "OpenRouter - qwen/qwen3.8-27b:free": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate Adaptive Flashcards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate Adaptive Flashcards": {
       "main": [
         [
           {

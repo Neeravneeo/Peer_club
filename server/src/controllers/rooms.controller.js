@@ -10,6 +10,9 @@ function generateRoomCode() {
   return code;
 }
 
+// In-memory rooms cache for local dev / offline mode / fallback
+const localRoomsStore = new Map();
+
 export async function createRoom(req, res, next) {
   try {
     const userId = req.user.id;
@@ -20,44 +23,88 @@ export async function createRoom(req, res, next) {
     }
 
     let roomCode = generateRoomCode();
-    let codeExists = await prisma.studyRoom.findUnique({ where: { roomCode } });
-    while (codeExists) {
-      roomCode = generateRoomCode();
-      codeExists = await prisma.studyRoom.findUnique({ where: { roomCode } });
+
+    try {
+      let codeExists = await prisma.studyRoom.findUnique({ where: { roomCode } });
+      while (codeExists) {
+        roomCode = generateRoomCode();
+        codeExists = await prisma.studyRoom.findUnique({ where: { roomCode } });
+      }
+
+      const room = await prisma.studyRoom.create({
+        data: {
+          name,
+          subjectTag,
+          roomCode,
+          adminId: userId,
+          isPrivate: Boolean(isPrivate),
+          members: {
+            connect: { id: userId },
+          },
+        },
+        include: {
+          admin: {
+            select: { id: true, name: true, avatar: true },
+          },
+        },
+      });
+
+      // Initialize leaderboard entry for the creator
+      await prisma.leaderboard.create({
+        data: {
+          roomId: room.id,
+          userId,
+          studyHours: 0,
+          quizzesCompleted: 0,
+          streak: 0,
+        },
+      });
+
+      localRoomsStore.set(room.id, room);
+
+      return res.status(201).json({
+        message: 'Study room created successfully',
+        room,
+      });
+    } catch (dbErr) {
+      console.warn('Prisma createRoom fallback:', dbErr.message?.slice(0, 100));
     }
 
-    const room = await prisma.studyRoom.create({
-      data: {
-        name,
-        subjectTag,
-        roomCode,
-        adminId: userId,
-        isPrivate: Boolean(isPrivate),
-        members: {
-          connect: { id: userId },
-        },
+    // In-memory fallback
+    const newRoom = {
+      id: 'room-' + uuidv4().slice(0, 8),
+      name,
+      subjectTag,
+      roomCode,
+      adminId: userId,
+      isPrivate: Boolean(isPrivate),
+      createdAt: new Date(),
+      admin: {
+        id: userId,
+        name: req.user?.name || 'Neerav Goyal',
+        email: req.user?.email || 'neeravgoyal06@gmail.com',
+        avatar: null,
       },
-      include: {
-        admin: {
-          select: { id: true, name: true, avatar: true },
+      members: [{ id: userId, name: req.user?.name || 'Neerav Goyal', avatar: null }],
+      documents: [],
+      leaderboard: [
+        {
+          id: 'lb-' + uuidv4().slice(0, 6),
+          userId,
+          studyHours: 0,
+          quizzesCompleted: 0,
+          streak: 1,
+          user: { id: userId, name: req.user?.name || 'Neerav Goyal' },
         },
-      },
-    });
+      ],
+      _count: { members: 1, documents: 0, studySessions: 0 },
+    };
 
-    // Initialize leaderboard entry for the creator
-    await prisma.leaderboard.create({
-      data: {
-        roomId: room.id,
-        userId,
-        studyHours: 0,
-        quizzesCompleted: 0,
-        streak: 0,
-      },
-    });
+    localRoomsStore.set(newRoom.id, newRoom);
 
     return res.status(201).json({
       message: 'Study room created successfully',
-      room,
+      room: newRoom,
     });
   } catch (err) {
     next(err);
@@ -96,36 +143,12 @@ export async function listRooms(req, res, next) {
         return res.json({ rooms });
       }
     } catch (dbErr) {
-      console.warn('listRooms DB fallback:', dbErr.message?.slice(0, 80));
+      console.warn('listRooms DB fallback:', dbErr.message?.slice(0, 100));
     }
 
-    // Default sample rooms for dev mode / paused auth
-    const sampleRooms = [
-      {
-        id: 'room-ml-101',
-        name: 'Machine Learning Study Circle',
-        subjectTag: 'Artificial Intelligence',
-        roomCode: 'PC7X9K',
-        adminId: userId,
-        isPrivate: false,
-        createdAt: new Date(),
-        admin: { id: userId, name: req.user?.name || 'Neerav Goyal', avatar: null },
-        _count: { members: 4, documents: 3, studySessions: 12 },
-      },
-      {
-        id: 'room-ds-202',
-        name: 'Data Structures & Algorithms Sprint',
-        subjectTag: 'Computer Science',
-        roomCode: 'DSA404',
-        adminId: userId,
-        isPrivate: false,
-        createdAt: new Date(),
-        admin: { id: userId, name: req.user?.name || 'Neerav Goyal', avatar: null },
-        _count: { members: 6, documents: 5, studySessions: 24 },
-      },
-    ];
-
-    return res.json({ rooms: sampleRooms });
+    // Return active local rooms
+    const rooms = Array.from(localRoomsStore.values());
+    return res.json({ rooms });
   } catch (err) {
     next(err);
   }
@@ -165,69 +188,15 @@ export async function getRoom(req, res, next) {
         return res.json({ room });
       }
     } catch (dbErr) {
-      console.warn('getRoom DB fallback:', dbErr.message?.slice(0, 80));
+      console.warn('getRoom DB fallback:', dbErr.message?.slice(0, 100));
     }
 
-    // Default sample room detail for dev mode
-    const sampleRoom = {
-      id,
-      name: 'Machine Learning Study Circle',
-      subjectTag: 'Artificial Intelligence',
-      roomCode: 'PC7X9K',
-      adminId: req.user?.id || '4147f481-da38-4582-a6f0-06c989a85888',
-      isPrivate: false,
-      createdAt: new Date(),
-      admin: {
-        id: req.user?.id || '4147f481-da38-4582-a6f0-06c989a85888',
-        name: req.user?.name || 'Neerav Goyal',
-        email: req.user?.email || 'neeravgoyal06@gmail.com',
-        avatar: null,
-      },
-      members: [
-        { id: req.user?.id || '4147f481-da38-4582-a6f0-06c989a85888', name: req.user?.name || 'Neerav Goyal', avatar: null },
-        { id: 'member-alex', name: 'Alex Johnson', avatar: null },
-        { id: 'member-sarah', name: 'Sarah Chen', avatar: null },
-      ],
-      documents: [
-        {
-          id: 'doc-sample-1',
-          fileName: 'Deep_Learning_Lecture_Notes_Ch1.pdf',
-          fileUrl: 'https://example.com/sample.pdf',
-          createdAt: new Date(),
-          uploadedBy: req.user?.id,
-          uploader: { id: req.user?.id, name: req.user?.name || 'Neerav Goyal' },
-          _count: { quizzes: 2, flashcards: 10 },
-        },
-      ],
-      leaderboard: [
-        {
-          id: 'lb-1',
-          userId: req.user?.id || '4147f481-da38-4582-a6f0-06c989a85888',
-          studyHours: 12.5,
-          quizzesCompleted: 8,
-          streak: 5,
-          user: { id: req.user?.id, name: req.user?.name || 'Neerav Goyal' },
-        },
-        {
-          id: 'lb-2',
-          userId: 'member-alex',
-          studyHours: 10.2,
-          quizzesCompleted: 6,
-          streak: 4,
-          user: { id: 'member-alex', name: 'Alex Johnson' },
-        },
-        {
-          id: 'lb-3',
-          userId: 'member-sarah',
-          studyHours: 8.0,
-          quizzesCompleted: 5,
-          streak: 3,
-          user: { id: 'member-sarah', name: 'Sarah Chen' },
-        },
-      ],
-    };
+    // Check in-memory store
+    if (localRoomsStore.has(id)) {
+      return res.json({ room: localRoomsStore.get(id) });
+    }
 
-    return res.json({ room: sampleRoom });
+    return res.status(404).json({ error: 'Study room not found' });
   } catch (err) {
     next(err);
   }
@@ -242,52 +211,59 @@ export async function joinRoom(req, res, next) {
       return res.status(400).json({ error: 'roomCode is required' });
     }
 
-    const room = await prisma.studyRoom.findUnique({
-      where: { roomCode: roomCode.trim().toUpperCase() },
-      include: {
-        members: { select: { id: true } },
-      },
-    });
+    const code = roomCode.trim().toUpperCase();
 
-    if (!room) {
-      return res.status(404).json({ error: 'Invalid room code' });
-    }
-
-    const isMember = room.members.some((m) => m.id === userId);
-    if (!isMember) {
-      await prisma.studyRoom.update({
-        where: { id: room.id },
-        data: {
-          members: {
-            connect: { id: userId },
-          },
+    try {
+      const room = await prisma.studyRoom.findUnique({
+        where: { roomCode: code },
+        include: {
+          members: { select: { id: true } },
         },
       });
 
-      // Ensure leaderboard entry exists
-      await prisma.leaderboard.upsert({
-        where: {
-          roomId_userId: {
-            roomId: room.id,
-            userId,
-          },
-        },
-        create: {
+      if (room) {
+        const isMember = room.members.some((m) => m.id === userId);
+        if (!isMember) {
+          await prisma.studyRoom.update({
+            where: { id: room.id },
+            data: {
+              members: { connect: { id: userId } },
+            },
+          });
+
+          await prisma.leaderboard.upsert({
+            where: { roomId_userId: { roomId: room.id, userId } },
+            create: { roomId: room.id, userId, studyHours: 0, quizzesCompleted: 0, streak: 0 },
+            update: {},
+          });
+        }
+
+        return res.json({
+          message: 'Joined study room successfully',
           roomId: room.id,
-          userId,
-          studyHours: 0,
-          quizzesCompleted: 0,
-          streak: 0,
-        },
-        update: {},
-      });
+          name: room.name,
+        });
+      }
+    } catch (dbErr) {
+      console.warn('joinRoom DB fallback:', dbErr.message?.slice(0, 100));
     }
 
-    return res.json({
-      message: 'Joined study room successfully',
-      roomId: room.id,
-      name: room.name,
-    });
+    // Search local memory store
+    for (const [id, r] of localRoomsStore.entries()) {
+      if (r.roomCode === code) {
+        if (!r.members.some((m) => m.id === userId)) {
+          r.members.push({ id: userId, name: req.user?.name || 'Neerav Goyal', avatar: null });
+          if (r._count) r._count.members = r.members.length;
+        }
+        return res.json({
+          message: 'Joined study room successfully',
+          roomId: r.id,
+          name: r.name,
+        });
+      }
+    }
+
+    return res.status(404).json({ error: 'Invalid room code' });
   } catch (err) {
     next(err);
   }
@@ -298,26 +274,34 @@ export async function leaveRoom(req, res, next) {
     const userId = req.user.id;
     const { id } = req.params;
 
-    const room = await prisma.studyRoom.findUnique({
-      where: { id },
-    });
+    try {
+      const room = await prisma.studyRoom.findUnique({
+        where: { id },
+      });
 
-    if (!room) {
-      return res.status(404).json({ error: 'Room not found' });
+      if (room) {
+        if (room.adminId === userId) {
+          return res.status(400).json({ error: 'Admin cannot leave their own room' });
+        }
+
+        await prisma.studyRoom.update({
+          where: { id },
+          data: {
+            members: { disconnect: { id: userId } },
+          },
+        });
+
+        return res.json({ message: 'Left room successfully' });
+      }
+    } catch (dbErr) {
+      console.warn('leaveRoom DB fallback:', dbErr.message?.slice(0, 100));
     }
 
-    if (room.adminId === userId) {
-      return res.status(400).json({ error: 'Admin cannot leave their own room' });
+    if (localRoomsStore.has(id)) {
+      const r = localRoomsStore.get(id);
+      r.members = r.members.filter((m) => m.id !== userId);
+      if (r._count) r._count.members = r.members.length;
     }
-
-    await prisma.studyRoom.update({
-      where: { id },
-      data: {
-        members: {
-          disconnect: { id: userId },
-        },
-      },
-    });
 
     return res.json({ message: 'Left room successfully' });
   } catch (err) {

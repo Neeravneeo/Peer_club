@@ -4,6 +4,7 @@ import {
   getInactiveUsers,
   getWeeklyStats,
   getAdminDigest,
+  checkLapsedStreaksInternal,
 } from '../controllers/internal.controller.js';
 
 export const internalRouter = Router();
@@ -23,6 +24,7 @@ internalRouter.use((req, res, next) => {
 });
 
 internalRouter.get('/streak-alert-users', getStreakAlertUsers);
+internalRouter.post('/check-streaks', checkLapsedStreaksInternal);
 internalRouter.get('/inactive-users', getInactiveUsers);
 internalRouter.get('/weekly-stats/:userId', getWeeklyStats);
 internalRouter.get('/admin-digest', getAdminDigest);
