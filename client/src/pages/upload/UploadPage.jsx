@@ -103,7 +103,7 @@ export function UploadPage() {
   const selectedFlashcardDoc = documents.find((d) => d.id === generateFlashcardModal.documentId);
 
   return (
-    <div className="min-h-screen bg-[#fff3e7] text-[#030302] selection:bg-[#9bd8a9]/40 relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#fff3e7] text-[#030302] flex flex-col font-sans selection:bg-[#9bd8a9]/40 relative overflow-x-clip w-full max-w-full">
       {/* Floating Craft.do Topbar */}
       <Topbar />
 

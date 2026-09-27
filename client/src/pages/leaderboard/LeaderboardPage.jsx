@@ -106,7 +106,7 @@ export function LeaderboardPage() {
   }, [allScholars]);
 
   return (
-    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)] relative pb-24 selection:bg-lime-200 overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)] flex flex-col font-sans relative selection:bg-lime-200 overflow-x-clip w-full max-w-full">
       {/* Decorative Scrapbook Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-0" aria-hidden="true">
         <DotGridPattern opacity="opacity-40" />

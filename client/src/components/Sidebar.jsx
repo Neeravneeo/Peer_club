@@ -59,6 +59,31 @@ export const Sidebar = ({ streakDays = null, className = '' }) => {
     { label: 'Profile', to: '/profile', icon: User },
   ];
 
+  const isItemActive = (itemTo) => {
+    if (itemTo === '/dashboard') {
+      return location.pathname === '/dashboard' || location.pathname === '/';
+    }
+    if (itemTo === '/documents') {
+      return location.pathname.startsWith('/documents') || location.pathname.startsWith('/docs');
+    }
+    if (itemTo === '/quizzes') {
+      return location.pathname.startsWith('/quiz');
+    }
+    if (itemTo === '/flashcards') {
+      return location.pathname.startsWith('/flashcard');
+    }
+    if (itemTo === '/rooms') {
+      return location.pathname.startsWith('/room');
+    }
+    if (itemTo === '/leaderboard') {
+      return location.pathname.startsWith('/leaderboard');
+    }
+    if (itemTo === '/profile') {
+      return location.pathname.startsWith('/profile');
+    }
+    return location.pathname.startsWith(itemTo);
+  };
+
   return (
     <aside
       className={`w-72 shrink-0 bg-[#faf7f2] border-r border-[#e1e1e1]/60 px-5 py-6 flex flex-col justify-between h-screen sticky top-0 overflow-hidden select-none box-border z-30 ${className}`}
@@ -79,30 +104,24 @@ export const Sidebar = ({ streakDays = null, className = '' }) => {
         <nav className="space-y-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
+            const active = isItemActive(item.to);
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={item.to === '/dashboard'}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 cursor-pointer font-sans tracking-tight text-[15px] ${
-                    isActive
-                      ? 'bg-[#9bd8a9]/25 text-[#030302] font-semibold border-l-4 border-[#9bd8a9] pl-3 shadow-xs'
-                      : 'text-[#41413f] hover:bg-[#f0ebe3] hover:translate-x-0.5 font-medium'
-                  }`
-                }
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 cursor-pointer font-sans tracking-tight text-[15px] ${
+                  active
+                    ? 'bg-[#9bd8a9]/25 text-[#030302] font-semibold border-l-4 border-[#9bd8a9] pl-3 shadow-xs'
+                    : 'text-[#41413f] hover:bg-[#f0ebe3] hover:translate-x-0.5 font-medium'
+                }`}
               >
-                {({ isActive }) => (
-                  <>
-                    <Icon
-                      className={`w-5 h-5 shrink-0 transition-colors ${
-                        isActive ? 'text-[#030302]' : 'text-[#6b7280]'
-                      }`}
-                      strokeWidth={2}
-                    />
-                    <span>{item.label}</span>
-                  </>
-                )}
+                <Icon
+                  className={`w-5 h-5 shrink-0 transition-colors ${
+                    active ? 'text-[#030302]' : 'text-[#6b7280]'
+                  }`}
+                  strokeWidth={2}
+                />
+                <span>{item.label}</span>
               </NavLink>
             );
           })}

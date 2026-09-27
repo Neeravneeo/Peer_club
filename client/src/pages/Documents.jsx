@@ -28,7 +28,7 @@ import { api } from '@/lib/api';
 
 // Components
 import { Topbar } from '@/components/Topbar';
-import { DocumentsSidebar } from '@/components/DocumentsSidebar';
+import { Sidebar } from '@/components/Sidebar';
 import { DocumentGrid } from '@/components/DocumentGrid';
 import { SearchBar } from '@/components/SearchBar';
 import { EmptyDocsState } from '@/components/EmptyDocsState';
@@ -311,7 +311,7 @@ export function DocumentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)] relative overflow-x-hidden w-full max-w-full selection:bg-[var(--color-mint)]/50 selection:text-[var(--color-ink)] flex flex-col">
+    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)] relative overflow-x-clip w-full max-w-full selection:bg-[var(--color-mint)]/50 selection:text-[var(--color-ink)] flex flex-col">
       {/* 1. Scrapbook Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-0" aria-hidden="true">
         <DotGridPattern opacity="opacity-30" />
@@ -323,39 +323,17 @@ export function DocumentsPage() {
       {/* Floating Topbar */}
       <Topbar />
 
-      {/* 2. Main Layout Container */}
-      <div className="flex flex-1 pt-22 md:pt-24 relative z-10">
-        {/* Left Sidebar (PART 4) */}
-        <DocumentsSidebar
-          activeFilter={activeFilter}
-          onSelectFilter={setActiveFilter}
-          onNewDocument={() => setIsNewDocModalOpen(true)}
-          starredDocs={starredDocs}
-          isOpenMobile={isMobileSidebarOpen}
-          onCloseMobile={() => setIsMobileSidebarOpen(false)}
-          onImportClick={() => navigate('/upload')}
-          onSettingsClick={() => navigate('/profile')}
-          onHelpClick={() => window.open('https://craft.do', '_blank')}
-        />
+      {/* 2. Main Layout Container with Sidebar (Identical to Dashboard) */}
+      <div className="flex flex-1 min-h-screen w-full relative z-10 items-start">
+        {/* Left Sidebar (Desktop Only - Stays fixed in place while scrolling, full 100vh height) */}
+        <div className="hidden md:block shrink-0 sticky top-0 h-screen z-30">
+          <Sidebar />
+        </div>
 
-        {/* Main Content Area (PART 5) */}
-        <main className="flex-1 overflow-y-auto p-6 sm:p-8 md:p-12 max-w-7xl mx-auto w-full">
-          {/* Mobile Sidebar Toggle & Active Path */}
-          <div className="flex md:hidden items-center justify-between mb-6">
-            <button
-              onClick={() => setIsMobileSidebarOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[var(--color-ash)] text-sm font-medium shadow-xs"
-            >
-              <Menu className="w-4 h-4 text-[var(--color-graphite)]" />
-              <span>Menu</span>
-            </button>
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-stone)]">
-              {getHeaderTitle()}
-            </span>
-          </div>
-
+        {/* Main Content Area */}
+        <main className="flex-1 pt-24 px-4 sm:px-6 md:px-10 pb-16 max-w-7xl w-full min-w-0">
           {/* Section 1: Page Header */}
-          <section className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+          <section className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
             {/* Left: Title & Scrapbook Underline */}
             <div>
               <h1 className="font-serif text-[38px] sm:text-[46px] leading-[1.1] tracking-[-1.38px] text-[var(--color-ink)] font-normal">
@@ -409,39 +387,68 @@ export function DocumentsPage() {
             </div>
           </section>
 
-          {/* Section 2: Search Bar & View Mode Toggle */}
-          <section className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8">
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onClear={() => setSearchQuery('')}
-              placeholder="Search documents by title, tags or content..."
-            />
+          {/* Section 2: Search Bar, View Mode Toggle & Filter Chips */}
+          <section className="space-y-4 mb-8">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onClear={() => setSearchQuery('')}
+                placeholder="Search documents by title, tags or content..."
+              />
 
-            {/* View Mode Toggle (Grid vs List) */}
-            <div className="flex items-center gap-1 self-end sm:self-auto bg-white p-1 rounded-full border border-[var(--color-ash)] shadow-xs">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-full transition-colors cursor-pointer ${
-                  viewMode === 'grid'
-                    ? 'bg-[var(--color-ink)] text-white'
-                    : 'text-[var(--color-stone)] hover:text-[var(--color-ink)] hover:bg-[var(--color-linen)]'
-                }`}
-                title="Grid View"
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-2 rounded-full transition-colors cursor-pointer ${
-                  viewMode === 'list'
-                    ? 'bg-[var(--color-ink)] text-white'
-                    : 'text-[var(--color-stone)] hover:text-[var(--color-ink)] hover:bg-[var(--color-linen)]'
-                }`}
-                title="List View"
-              >
-                <List className="w-4 h-4" />
-              </button>
+              {/* View Mode Toggle (Grid vs List) */}
+              <div className="flex items-center gap-1 self-end sm:self-auto bg-white p-1 rounded-full border border-[var(--color-ash)] shadow-xs">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-full transition-colors cursor-pointer ${
+                    viewMode === 'grid'
+                      ? 'bg-[var(--color-ink)] text-white'
+                      : 'text-[var(--color-stone)] hover:text-[var(--color-ink)] hover:bg-[var(--color-linen)]'
+                  }`}
+                  title="Grid View"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-full transition-colors cursor-pointer ${
+                    viewMode === 'list'
+                      ? 'bg-[var(--color-ink)] text-white'
+                      : 'text-[var(--color-stone)] hover:text-[var(--color-ink)] hover:bg-[var(--color-linen)]'
+                  }`}
+                  title="List View"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Chips */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+              {[
+                { id: 'all', label: 'All Docs' },
+                { id: 'starred', label: '⭐ Starred' },
+                { id: 'tasks', label: 'Tasks' },
+                { id: 'templates', label: 'Templates' },
+                { id: 'folder-craft', label: 'Study Guides' },
+                { id: 'folder-unsorted', label: 'Notes & Uploads' },
+              ].map((chip) => {
+                const isActive = activeFilter === chip.id;
+                return (
+                  <button
+                    key={chip.id}
+                    onClick={() => setActiveFilter(chip.id)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-[var(--color-ink)] text-white shadow-xs'
+                        : 'bg-white hover:bg-[var(--color-linen)] text-[var(--color-graphite)] border border-[var(--color-ash)]'
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                );
+              })}
             </div>
           </section>
 

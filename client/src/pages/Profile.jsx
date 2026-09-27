@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 
 // Visual & Layout Components
 import { Topbar } from '@/components/Topbar';
+import { Sidebar } from '@/components/Sidebar';
 import {
   DotGridPattern,
   PastelBlob,
@@ -273,7 +274,7 @@ export function Profile() {
   const badgesCount = badgesList.filter((b) => b.status === 'earned').length;
 
   return (
-    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)] relative overflow-x-hidden w-full max-w-full selection:bg-[var(--color-mint)]/50 selection:text-[var(--color-ink)]">
+    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)] flex flex-col font-sans relative overflow-x-clip w-full max-w-full selection:bg-[var(--color-mint)]/50 selection:text-[var(--color-ink)]">
       {/* Decorative Scrapbook Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-0" aria-hidden="true">
         <DotGridPattern opacity="opacity-30" />
@@ -285,8 +286,15 @@ export function Profile() {
       {/* Fixed Floating Topbar */}
       <Topbar />
 
-      {/* Main Container */}
-      <main className="max-w-[1280px] mx-auto px-6 sm:px-8 md:px-12 pt-24 md:pt-28 pb-20 relative z-10">
+      {/* Main Layout Container with Sidebar */}
+      <div className="flex flex-1 min-h-screen w-full relative z-10 items-start">
+        {/* Left Sidebar (Desktop Only) */}
+        <div className="hidden md:block shrink-0 sticky top-0 h-screen z-30">
+          <Sidebar />
+        </div>
+
+        {/* Main Container */}
+        <main className="flex-1 max-w-6xl w-full min-w-0 mx-auto px-4 sm:px-6 md:px-10 pt-24 pb-20 relative z-10">
         {/* Section 1: Hero Banner (Full Width) */}
         <ProfileHero
           name={name || profileData?.name || 'Finn Campbell Mertens'}
@@ -352,6 +360,7 @@ export function Profile() {
           />
         </div>
       </main>
+    </div>
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal

@@ -237,7 +237,7 @@ export function FlashcardsHub() {
   });
 
   return (
-    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)] relative overflow-x-hidden w-full max-w-full selection:bg-[var(--color-mint)]/50 selection:text-[var(--color-ink)] flex flex-col justify-between">
+    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)] relative overflow-x-clip w-full max-w-full selection:bg-[var(--color-mint)]/50 selection:text-[var(--color-ink)] flex flex-col">
       {/* Decorative Scrapbook Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-0" aria-hidden="true">
         <DotGridPattern opacity="opacity-30" />
