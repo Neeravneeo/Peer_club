@@ -17,12 +17,19 @@ export function DocumentsVault({ documents = [], onUpload }) {
   };
 
   const handlePreview = (doc) => {
-    toast.info(`Opening preview for "${doc.title}"`);
-    navigate('/documents');
+    if (doc.fileUrl) {
+      window.open(doc.fileUrl, '_blank');
+    } else {
+      toast.error('Document file URL is missing.');
+    }
   };
 
   const handleDownload = (doc) => {
-    toast.success(`Downloading ${doc.title}...`);
+    if (doc.fileUrl) {
+      window.open(doc.fileUrl, '_blank');
+    } else {
+      toast.error('Document file URL is missing.');
+    }
   };
 
   if (!documents || documents.length === 0) {
@@ -63,9 +70,9 @@ export function DocumentsVault({ documents = [], onUpload }) {
               <div className="flex items-center gap-2 text-xs text-[var(--color-stone)] mt-0.5">
                 <span>By {doc.uploaderName || doc.uploader?.name || 'Peer'}</span>
                 <span>•</span>
-                <span>{doc.uploadedTime || 'Recently'}</span>
+                <span>{doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : (doc.uploadedTime || 'Recently')}</span>
                 <span>•</span>
-                <span>{doc.fileSize || '2.4 MB'}</span>
+                <span>{doc.fileSize || 'PDF Document'}</span>
               </div>
             </div>
           </div>

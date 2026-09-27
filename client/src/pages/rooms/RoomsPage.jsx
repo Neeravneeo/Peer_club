@@ -34,6 +34,7 @@ import { MembersList } from '@/components/rooms/MembersList';
 import { CreateRoomModal } from '@/components/rooms/CreateRoomModal';
 import { JoinRoomModal } from '@/components/rooms/JoinRoomModal';
 import { SAMPLE_STUDY_ROOMS } from '@/components/rooms/sampleRoomsData';
+import { DocumentUploadModal } from '@/components/documents';
 
 export function RoomsPage() {
   const navigate = useNavigate();
@@ -47,7 +48,34 @@ export function RoomsPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
+  const handleUploadDocument = async (payload) => {
+    const { title, category, summary, file } = payload || {};
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', title.trim());
+    formData.append('category', category || 'Study Resources');
+    if (summary) formData.append('description', summary.trim());
+    formData.append('roomId', selectedRoomId);
+
+    try {
+      await api.post('/documents', formData);
+      toast.success('Document uploaded to study room successfully!');
+      setIsUploadOpen(false);
+      queryClient.invalidateQueries(['room', selectedRoomId]);
+      queryClient.invalidateQueries(['rooms']);
+    } catch (err) {
+      console.error('Failed to upload document:', err);
+      toast.error('Failed to upload document. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Fetch backend rooms list
   const { data: serverRooms = [] } = useQuery({
@@ -379,7 +407,7 @@ export function RoomsPage() {
                 {/* Room Detail Header */}
                 <RoomHeader
                   room={selectedRoom}
-                  onUploadDoc={() => navigate('/documents', { state: { roomId: selectedRoom.id } })}
+                  onUploadDoc={() => setIsUploadOpen(true)}
                   onLeaveRoom={handleLeaveRoom}
                   onlineCount={onlineMembers.length}
                   channel={activeChannel}
@@ -402,7 +430,7 @@ export function RoomsPage() {
                 {activeTab === 'vault' && (
                   <DocumentsVault
                     documents={selectedRoom.documents}
-                    onUpload={() => navigate('/documents', { state: { roomId: selectedRoom.id } })}
+                    onUpload={() => setIsUploadOpen(true)}
                   />
                 )}
 
@@ -437,6 +465,12 @@ export function RoomsPage() {
         onClose={() => setIsJoinOpen(false)}
         onJoin={(code) => joinMutation.mutate(code)}
         isJoining={joinMutation.isPending}
+      />
+
+      <DocumentUploadModal
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        onCreate={handleUploadDocument}
       />
     </div>
   );
