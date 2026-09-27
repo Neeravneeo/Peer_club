@@ -20,7 +20,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:4000/api/internal/check-streaks",
+        "url": "https://peerclub-production.up.railway.app/api/internal/check-streaks",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [

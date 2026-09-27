@@ -1,0 +1,102 @@
+{
+  "name": "Peer Club - Evening Streak Preservation Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 20 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Evening 8PM Cron Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://peerclub-production.up.railway.app/api/internal/streak-alert-users",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "peer_club_n8n_secret_token_123"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Active Streak Users",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst users = response.users || [];\nconst todayStr = new Date().toISOString().split('T')[0];\n\n// Find users who have not completed study activity today and risk losing their streak\nconst atRiskUsers = users.filter(u => {\n  if (!u.lastVisitDate) return true;\n  return u.lastVisitDate !== todayStr;\n});\n\nreturn atRiskUsers.map(user => ({\n  json: {\n    userId: user.userId,\n    name: user.name,\n    email: user.email,\n    currentStreak: user.streak,\n    alertMessage: `Don't break your ${user.streak}-day streak! Complete a quiz or review flashcards before midnight to keep it alive.`,\n    sentAt: new Date().toISOString()\n  }\n}));"
+      },
+      "name": "Filter At-Risk Users",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nreturn [{\n  json: {\n    alertExecutionTime: new Date().toISOString(),\n    totalAlertsPrepared: items.length,\n    alerts: items.map(i => i.json)\n  }\n}];"
+      },
+      "name": "Summarize Streak Alerts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 300]
+    }
+  ],
+  "connections": {
+    "Evening 8PM Cron Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Active Streak Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Active Streak Users": {
+      "main": [
+        [
+          {
+            "node": "Filter At-Risk Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter At-Risk Users": {
+      "main": [
+        [
+          {
+            "node": "Summarize Streak Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
