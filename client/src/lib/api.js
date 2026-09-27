@@ -2,8 +2,9 @@ import axios from 'axios'
 import { supabase } from './supabase'
 import { PAUSE_AUTH } from '../stores/authStore'
 
+const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://peerclub-production.up.railway.app/api',
+  baseURL: isProd ? 'https://peerclub-production.up.railway.app/api' : (import.meta.env.VITE_API_URL || 'http://localhost:4000/api'),
 })
 
 api.interceptors.request.use(async (config) => {
