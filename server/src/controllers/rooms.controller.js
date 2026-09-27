@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../lib/prisma.js';
+import { memoryDocuments } from './documents.controller.js';
 
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -200,13 +201,27 @@ export async function getRoom(req, res, next) {
       });
 
       if (room) {
-        const documentCount = room.documents?.length || 0;
-        const quizCount = room.documents?.reduce((sum, doc) => sum + (doc._count?.quizzes || 0), 0) || 0;
+        // Merge memory documents
+        const memDocs = Array.from(memoryDocuments.values()).filter(d => d.roomId === room.id);
+        const allDocsMap = new Map();
+        room.documents?.forEach(d => allDocsMap.set(d.id, d));
+        memDocs.forEach(d => allDocsMap.set(d.id, {
+          ...d,
+          uploader: d.uploader || { id: d.uploadedBy, name: 'You' },
+          _count: d._count || { quizzes: 0, flashcards: 0 }
+        }));
+        
+        room.documents = Array.from(allDocsMap.values());
+        
+        const documentCount = room.documents.length;
+        const quizCount = room.documents.reduce((sum, doc) => sum + (doc._count?.quizzes || 0), 0);
+        
         return res.json({ 
           room: {
             ...room,
             documentCount,
-            quizCount
+            quizCount,
+            documents: room.documents
           }
         });
       }

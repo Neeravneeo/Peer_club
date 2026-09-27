@@ -22,6 +22,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { api } from '@/lib/api';
@@ -222,6 +223,8 @@ export function DocumentsPage() {
     toast.success(`Duplicated "${doc.title}"`);
   };
 
+  const queryClient = useQueryClient();
+
   const handleMoveDocument = async (roomId) => {
     if (!documentToMove || !roomId) return;
     
@@ -229,6 +232,8 @@ export function DocumentsPage() {
       await api.patch(`/documents/${documentToMove.id}`, { roomId });
       toast.success(`Document moved to study room successfully!`);
       setDocumentToMove(null);
+      queryClient.invalidateQueries(['rooms']);
+      queryClient.invalidateQueries(['room']);
     } catch (err) {
       console.error('Failed to move document:', err);
       toast.error('Failed to move document. Please try again.');
