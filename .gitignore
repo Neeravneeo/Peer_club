@@ -46,3 +46,12 @@ temp/
 scratch/
 graphify-out/cache/
 
+
+# AI and generated files
+docs/
+graphify-out/
+graph-engineering/
+.agents/
+.claude/
+*.md
+!README.md
