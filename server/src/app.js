@@ -64,6 +64,20 @@ app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/internal', internalRouter);
 app.use('/api/streak', streakRouter);
 
+// API Root welcome / status
+app.get(['/', '/api'], (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'Peer Club API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      cloudinary: '/api/health/cloudinary',
+    },
+    message: 'Welcome to Peer Club API. Everything is running smoothly.',
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
