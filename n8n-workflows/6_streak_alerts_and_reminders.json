@@ -20,7 +20,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://peerclub-production.up.railway.app/api/internal/streak-alert-users",
+        "url": "https://peer-club.onrender.com/api/internal/streak-alert-users",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
