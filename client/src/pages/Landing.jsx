@@ -259,7 +259,7 @@ const Hero = () => {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2D5BFF] opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2D5BFF]"></span>
           </span>
-          Powered by Google Gemini 1.5 Flash
+          Powered by Google Gemini 3.8 Flash
         </div>
 
         {/* Serif Headline with Hand-drawn Underline */}
@@ -319,7 +319,7 @@ const Hero = () => {
               <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/60" />
             </div>
             <div className="text-[11px] font-medium text-[#8A8F98] bg-white border border-[#E8E8E3] px-4 py-1 rounded-full shadow-2xl">
-              peer-club-workspace.app · Gemini 1.5 Flash
+              peer-club-workspace.app · Gemini  Flash
             </div>
             <div className="w-12" />
           </div>
@@ -340,7 +340,7 @@ const Hero = () => {
               <div className="h-8 w-24 bg-white text-[#6B6B6B] text-xs rounded-xl flex items-center px-3 border border-[#E8E8E3]">
                 📊 Leaderboard
               </div>
-              <div className="mt-auto h-16 rounded-2xl bg-[#F0F4FF] p-3 border border-blue-100 flex flex-col justify-center">
+              <div className="mt-auto h-16 rouned-2xl bg-[#F0F4FF] p-3 border border-blue-100 flex flex-col justify-center">
                 <span className="text-[10px] text-[#2D5BFF] font-semibold uppercase">Daily Goal</span>
                 <span className="text-xs font-bold text-[#1A1A1A]">45 / 60 mins</span>
               </div>
@@ -851,11 +851,10 @@ const StreakFeatureSection = () => {
             {days.map((d, i) => (
               <div
                 key={i}
-                className={`aspect-square rounded-xl flex items-center justify-center text-[11px] font-semibold border ${
-                  d
+                className={`aspect-square rounded-xl flex items-center justify-center text-[11px] font-semibold border ${d
                     ? "bg-orange-100 border-orange-200 text-orange-800"
                     : "bg-[#FAFAF7] border-[#E8E8E3] text-[#9A9A9A]"
-                }`}
+                  }`}
               >
                 {d ? "🔥" : i + 1}
               </div>
@@ -884,11 +883,12 @@ const StreakFeatureSection = () => {
 const StructureCards = () => {
   const cards = [
     {
-      title: "Spaces",
-      desc: "Segregate semesters, exam years, and distinct competitive syllabi in isolated workspaces.",
+      title: "Rooms",
+      desc: "Segregate semesters, exam years, and distinct competitive syllabi in isolated study rooms.",
       bg: "bg-[#F0F4FF]",
       border: "border-blue-200",
       tag: "ORGANIZATION",
+      href: "/rooms"
     },
     {
       title: "Documents",
@@ -896,6 +896,7 @@ const StructureCards = () => {
       bg: "bg-[#FFF9E6]",
       border: "border-amber-200",
       tag: "SYNTHESIS",
+      href: "/documents"
     },
     {
       title: "Collections",
@@ -903,6 +904,7 @@ const StructureCards = () => {
       bg: "bg-[#F0FFF4]",
       border: "border-emerald-200",
       tag: "MASTERY",
+      href: "/quizzes"
     },
   ];
 
@@ -918,7 +920,11 @@ const StructureCards = () => {
 
         <div className="grid md:grid-cols-3 gap-8 text-left">
           {cards.map((c, i) => (
-            <div key={i} className={`rounded-3xl ${c.bg} border ${c.border} p-8 flex flex-col justify-between shadow-sm`}>
+            <Link 
+              key={i} 
+              to={c.href}
+              className={`rounded-3xl ${c.bg} border ${c.border} p-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer`}
+            >
               <div>
                 <span className="text-[10px] font-bold tracking-widest text-[#1A1A1A]/70 uppercase bg-white/60 px-3 py-1 rounded-full">
                   {c.tag}
@@ -928,9 +934,9 @@ const StructureCards = () => {
               </div>
               <div className="mt-8 pt-4 border-t border-black/5 flex items-center justify-between text-xs font-semibold text-[#1A1A1A]">
                 <span>Explore {c.title}</span>
-                <span>→</span>
+                <span className="text-lg leading-none">→</span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

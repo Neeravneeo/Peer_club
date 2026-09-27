@@ -24,7 +24,6 @@ export const useAuthStore = create((set) => ({
     set((state) => ({
       session: session ?? (PAUSE_AUTH ? DEV_MOCK_SESSION : null),
       supabaseUser: (session?.user ?? (PAUSE_AUTH ? DEV_MOCK_USER : null)),
-      isLoading: false,
     })),
   setAppUser: (appUser) => set({ appUser: appUser ?? (PAUSE_AUTH ? DEV_MOCK_USER : null) }),
   setLoading: (isLoading) => set({ isLoading }),

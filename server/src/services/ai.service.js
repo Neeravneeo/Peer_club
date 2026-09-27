@@ -201,7 +201,7 @@ export async function generateQuizFromText(
           headers: {
             Authorization: `Bearer ${OPENROUTER_API_KEY}`,
             'Content-Type': 'application/json',
-            'HTTP-Referer': 'http://localhost:3000',
+            'HTTP-Referer': process.env.CLIENT_URL || 'http://localhost:3000',
             'X-Title': 'Peer Club',
           },
           httpsAgent,
@@ -369,7 +369,7 @@ export async function generateFlashcardsFromText(extractedText, count = 10, opti
           headers: {
             Authorization: `Bearer ${OPENROUTER_API_KEY}`,
             'Content-Type': 'application/json',
-            'HTTP-Referer': 'http://localhost:3000',
+            'HTTP-Referer': process.env.CLIENT_URL || 'http://localhost:3000',
             'X-Title': 'Peer Club',
           },
           httpsAgent,

@@ -1,16 +1,16 @@
-# Graph Report - Peer_club  (2026-09-23)
+# Graph Report - Peer_club  (2026-09-22)
 
 ## Corpus Check
-- 626 files · ~278,118 words
+- 624 files · ~277,948 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3917 nodes · 5301 edges · 345 communities (306 shown, 18 thin omitted)
+- 3903 nodes · 5289 edges · 347 communities (310 shown, 16 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 68 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9c92afaf`
+- Built from commit: `c7f39c3f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -26,12 +26,12 @@
 - 2. Screen-by-Screen Flow
 - 5. Core Features (MVP)
 - Peer Club - Month 1 MVP Build
-- flashcards.controller.js
+- quiz.controller.js
 - cn
 - Landing.jsx
 - DocumentUploadModal.jsx
 - auth.middleware.js
-- documents.controller.js
+- sessions.controller.js
 - Source Course — Translated Curriculum
 - spectrum/api.md
 - Source Course — Translated Curriculum
@@ -61,7 +61,7 @@
 - Graph Engineering
 - Graph Engineering
 - server/package.json
-- react-router-dom
+- navigation/UniversalNavbar.jsx
 - devDependencies
 - graphify reference: add a URL and watch a folder
 - graphify reference: commit hook and native CLAUDE.md integration
@@ -82,22 +82,22 @@
 - .claude/skills/graphify/references/extraction-spec.md
 - dashboard.controller.js
 - client/src/lib/supabase.js
-- documents.routes.js
+- documents.controller.js
 - Durable Objects
 - react
+- FlashcardsHub.jsx
 - Dashboard.jsx
-- lucide-react
 - Artifacts Configuration
 - streak.service.js
 - C3 (create-cloudflare)
 - rooms.controller.js
-- RegisterPage.jsx
+- react-router-dom
 - Adaptive Quiz Generator for Peer Club
-- api.js
+- FlashcardStudyMode.jsx
 - Adaptive Flashcard Deck Generator for Peer Club
 - pages-functions/README.md
 - Guardrails
-- deploy
+- TopNav.jsx
 - email-routing/README.md
 - client/src/utils/dateUtils.js
 - cloudflare/SKILL.md
@@ -335,10 +335,12 @@
 - auth-probe.sh
 - persist-skill.sh
 - widget-create.sh
-- internal.controller.js
-- streak.routes.js
-- vercel.json
-- vite.config.js
+- ProfilePage.tsx
+- Documents.jsx
+- LeaderboardPage.jsx
+- card.jsx
+- button.jsx
+- AnimatedLoader.jsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `react` - 133 edges
@@ -353,29 +355,29 @@
 10. `Peer Club - Month 1 MVP Build` - 19 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `TakeQuizPage()` --calls--> `triggerStreakActivity()`  [EXTRACTED]
+  client/src/pages/quiz/TakeQuizPage.jsx → client/src/components/StreakCard.jsx
+- `StatCard()` --calls--> `cn()`  [EXTRACTED]
+  client/src/components/dashboard/StatCard.jsx → client/src/lib/utils.js
+- `CardDescription` --calls--> `cn()`  [EXTRACTED]
+  client/src/components/ui/card.jsx → client/src/lib/utils.js
+- `CardFooter` --calls--> `cn()`  [EXTRACTED]
+  client/src/components/ui/card.jsx → client/src/lib/utils.js
 - `LeaderboardPage()` --calls--> `useAuth()`  [EXTRACTED]
   client/src/pages/leaderboard/LeaderboardPage.jsx → client/src/hooks/useAuth.ts
-- `QuizListPage()` --calls--> `useAuth()`  [EXTRACTED]
-  client/src/pages/quiz/QuizListPage.jsx → client/src/hooks/useAuth.ts
-- `App()` --calls--> `useAuth()`  [EXTRACTED]
-  client/src/App.jsx → client/src/hooks/useAuth.ts
-- `DocumentUploadModal()` --calls--> `triggerStreakActivity()`  [EXTRACTED]
-  client/src/components/documents/DocumentUploadModal.jsx → client/src/components/StreakCard.jsx
-- `FlashcardStudyMode()` --calls--> `triggerStreakActivity()`  [EXTRACTED]
-  client/src/pages/FlashcardStudyMode.jsx → client/src/components/StreakCard.jsx
 
 ## Import Cycles
 - None detected.
 
-## Communities (345 total, 18 thin omitted)
+## Communities (347 total, 16 thin omitted)
 
 ### Community 0 - "dependencies"
 Cohesion: 0.08
-Nodes (25): dependencies, axios, cloudinary, cors, dotenv, express, @google/generative-ai, helmet (+17 more)
+Nodes (23): dependencies, axios, cloudinary, cors, dotenv, express, @google/generative-ai, helmet (+15 more)
 
 ### Community 1 - "client/package.json"
-Cohesion: 0.07
-Nodes (27): axios, @supabase/supabase-js, zod, name, private, type, version, autoprefixer (+19 more)
+Cohesion: 0.08
+Nodes (23): axios, @supabase/supabase-js, zod, name, private, type, version, autoprefixer (+15 more)
 
 ### Community 2 - "Peer Club"
 Cohesion: 0.06
@@ -413,25 +415,25 @@ Nodes (23): 1. App Overview, 2. Target Users, 3. Problem Statement, 4. User Role
 Cohesion: 0.10
 Nodes (19): n8n Workflows Summary, Overview, Peer Club - Month 1 MVP Build, Phase 0: Project Setup, Phase 10: Study Session Logging and Streak, Phase 11: Badge System, Phase 12: EXPANDED n8n Automation (15 Workflows), Phase 13: Polish and Error Handling (+11 more)
 
-### Community 11 - "flashcards.controller.js"
-Cohesion: 0.18
-Nodes (15): @google/generative-ai, deleteFlashcardSet(), generateFlashcards(), getFlashcardSet(), listFlashcardSets(), memoryFlashcardSets, updateFlashcardProgress(), geminiModel (+7 more)
+### Community 11 - "quiz.controller.js"
+Cohesion: 0.15
+Nodes (20): getDocumentById(), deleteFlashcardSet(), generateFlashcards(), getFlashcardSet(), listFlashcardSets(), memoryFlashcardSets, updateFlashcardProgress(), generateQuiz() (+12 more)
 
 ### Community 12 - "cn"
-Cohesion: 0.08
-Nodes (43): SparklineCard(), StatCard(), GenerateFlashcardModal(), Avatar, AvatarFallback, AvatarImage, Badge(), badgeVariants (+35 more)
+Cohesion: 0.13
+Nodes (21): SparklineCard(), NotificationBell(), Sidebar(), Avatar, AvatarFallback, AvatarImage, DialogFooter(), DialogOverlay (+13 more)
 
 ### Community 14 - "DocumentUploadModal.jsx"
-Cohesion: 0.12
-Nodes (22): AnimatedLoader(), COLOR_VARIANTS, ROTATIONS, CATEGORIES, DocumentUploadModal(), PREVIEW_STYLES, FileUploadZone(), FormField() (+14 more)
+Cohesion: 0.17
+Nodes (19): CATEGORIES, DocumentUploadModal(), PREVIEW_STYLES, FileUploadZone(), FormField(), useFileUpload(), useModalAnimation(), CheckCircleIcon() (+11 more)
 
 ### Community 15 - "auth.middleware.js"
-Cohesion: 0.17
-Nodes (15): express, getNotifications(), markAllAsRead(), markAsRead(), getStudySessions, deleteAccount(), changePassword(), getMe() (+7 more)
-
-### Community 16 - "documents.controller.js"
 Cohesion: 0.15
-Nodes (18): cloudinary, dotenv, uuid, deleteDocument(), getDocumentById(), memoryDocuments, uploadDocument(), generateQuiz() (+10 more)
+Nodes (17): express, getGlobalLeaderboard(), getRoomLeaderboard(), getNotifications(), markAllAsRead(), markAsRead(), deleteAccount(), changePassword() (+9 more)
+
+### Community 16 - "sessions.controller.js"
+Cohesion: 0.38
+Nodes (4): uuid, createStudySession(), getStudySessions, sessionsRouter
 
 ### Community 17 - "Source Course — Translated Curriculum"
 Cohesion: 0.18
@@ -454,8 +456,8 @@ Cohesion: 0.33
 Nodes (7): deleteMe(), getBadges, changePassword(), getMe(), updateMe(), updatePreferences(), usersRouter
 
 ### Community 22 - "app.js"
-Cohesion: 0.15
-Nodes (12): allowedOrigins, app, getGlobalLeaderboard(), getRoomLeaderboard(), edgeCache(), edgeCompression(), errorHandler(), flashcardsRouter (+4 more)
+Cohesion: 0.14
+Nodes (14): app, checkLapsedStreaksInternal(), getAdminDigest(), getInactiveUsers(), getStreakAlertUsers(), getWeeklyStats(), edgeCache(), edgeCompression() (+6 more)
 
 ### Community 23 - "Task Graphs: Orchestrating Agents"
 Cohesion: 0.22
@@ -498,12 +500,12 @@ Cohesion: 0.25
 Nodes (7): 1. Prerequisites, 2. Client Setup, 3. Server Setup, 🚀 Getting Started, 🏗️ Month 1 Architecture & Tech Stack, Peer Club, 📂 Repository Structure
 
 ### Community 33 - "Profile.jsx"
-Cohesion: 0.12
-Nodes (16): AboutSection(), STUDY_GOAL_OPTIONS, AVATAR_PRESETS, AvatarPicker(), BadgesSection(), DEFAULT_BADGES, DeleteConfirmationModal(), DEFAULT_PREFERENCES (+8 more)
+Cohesion: 0.11
+Nodes (17): AboutSection(), STUDY_GOAL_OPTIONS, AVATAR_PRESETS, AvatarPicker(), BadgesSection(), DEFAULT_BADGES, DeleteConfirmationModal(), DEFAULT_PREFERENCES (+9 more)
 
 ### Community 34 - "App.jsx"
-Cohesion: 0.08
-Nodes (27): DashboardPage, FlashcardListPage, App(), ProfilePage, QuizListPage, QuizResultsPage, TakeQuizPage, App() (+19 more)
+Cohesion: 0.07
+Nodes (29): DashboardPage, FlashcardListPage, ForgotPasswordPage, App(), LoginPage, QuizListPage, QuizResultsPage, RegisterPage (+21 more)
 
 ### Community 35 - "Knowledge Representation & Ontology Modeling"
 Cohesion: 0.29
@@ -546,12 +548,12 @@ Cohesion: 0.33
 Nodes (6): Credits, Graph Engineering, Install (two commands), The 9-stage pipeline, The task-graph rules (the other half), What's inside
 
 ### Community 46 - "server/package.json"
-Cohesion: 0.10
-Nodes (18): cors, helmet, nodemon, pdf-parse, prisma, @prisma/client, devDependencies, nodemon (+10 more)
+Cohesion: 0.08
+Nodes (23): cloudinary, cors, dotenv, @google/generative-ai, helmet, nodemon, pdf-parse, prisma (+15 more)
 
-### Community 48 - "react-router-dom"
-Cohesion: 0.12
-Nodes (16): LogStudyModal(), BottomTabBar(), tabs, NotificationBell(), Sidebar(), TopNav(), MobileTopBar(), MoreMenu() (+8 more)
+### Community 48 - "navigation/UniversalNavbar.jsx"
+Cohesion: 0.20
+Nodes (9): MobileTopBar(), MoreMenu(), NavLinkItem(), UniversalNavbar(), NotificationBell(), MOBILE_NAV_ITEMS, PRIMARY_NAV_ITEMS, SECONDARY_NAV_ITEMS (+1 more)
 
 ### Community 49 - "devDependencies"
 Cohesion: 0.33
@@ -589,33 +591,33 @@ Nodes (5): craftColors, craftFonts, craftRadius, craftShadows, craftTokens
 Cohesion: 0.54
 Nodes (6): calculateBadgeLevel(), calculateUserBadges(), getDashboardData(), getDashboardStats(), withTimeout(), dashboardRouter
 
-### Community 71 - "documents.routes.js"
-Cohesion: 0.20
-Nodes (7): multer, getDocument(), listDocuments(), allowedMimeTypes, storage, upload, documentsRouter
+### Community 71 - "documents.controller.js"
+Cohesion: 0.17
+Nodes (11): multer, deleteDocument(), getDocument(), listDocuments(), memoryDocuments, uploadDocument(), allowedMimeTypes, storage (+3 more)
 
 ### Community 72 - "Durable Objects"
 Cohesion: 0.06
 Nodes (24): DO Storage API, DO Storage Configuration, DO Storage Troubleshooting, DO Storage Patterns, Cloudflare Durable Objects Storage, DO Storage Testing, Durable Objects Rules & Best Practices, Testing Durable Objects (+16 more)
 
 ### Community 73 - "react"
-Cohesion: 0.08
-Nodes (21): LeaderboardPage, RoomsPage, FilterTabs(), LeagueTiers(), PersonalRankCard(), PodiumShowcase(), RankingTable(), SAMPLE_LEADERBOARD_USERS (+13 more)
+Cohesion: 0.11
+Nodes (17): RoomsPage, DeckGrid(), FlashcardDeckCard(), getSubjectGradient(), NotificationIcon(), OptionButton(), CreateRoomModal(), DocumentsVault() (+9 more)
 
-### Community 74 - "Dashboard.jsx"
-Cohesion: 0.06
-Nodes (31): DocumentsPage, DotGridPattern(), HandDrawnArrow(), HandDrawnUnderline(), PastelBlob(), TornPaperBackdrop(), DocumentCard, BACKDROP_COLORS (+23 more)
+### Community 74 - "FlashcardsHub.jsx"
+Cohesion: 0.09
+Nodes (23): NotificationsPage, DotGridPattern(), HandDrawnArrow(), HandDrawnUnderline(), PastelBlob(), TornPaperBackdrop(), FILTER_CHIPS, FilterBar() (+15 more)
 
-### Community 75 - "lucide-react"
-Cohesion: 0.12
-Nodes (14): NotificationsPage, DeckGrid(), FlashcardDeckCard(), getSubjectGradient(), NotificationCard(), NotificationFilters(), NotificationIcon(), SAMPLE_NOTIFICATIONS (+6 more)
+### Community 75 - "Dashboard.jsx"
+Cohesion: 0.10
+Nodes (22): PrivateRoute(), EmptyState(), LogSessionModal(), QuizCard, Sidebar(), StatCard, StreakCard, StreakCardComponent() (+14 more)
 
 ### Community 76 - "Artifacts Configuration"
 Cohesion: 0.07
 Nodes (25): Artifacts API Reference, Binding Notes, Git-Compatible Access, Namespace Methods, Repo Handle Methods, Repo Routes, REST API, Token Routes (+17 more)
 
 ### Community 77 - "streak.service.js"
-Cohesion: 0.15
-Nodes (26): calculateNextStreak(), checkAndResetLapsedStreaks(), DATA_DIR, __dirname, executeDailyStreakCheckGraph, __filename, getMsUntilNextUtcMidnight(), getUserStreak() (+18 more)
+Cohesion: 0.13
+Nodes (31): getStreak(), resetStreak(), updateStreak(), streakRouter, calculateNextStreak(), checkAndResetLapsedStreaks(), DATA_DIR, __dirname (+23 more)
 
 ### Community 78 - "C3 (create-cloudflare)"
 Cohesion: 0.07
@@ -625,17 +627,17 @@ Nodes (25): Advanced Flags, C3 CLI Reference, Core Flags, Deployment Flags, Envi
 Cohesion: 0.33
 Nodes (8): createRoom(), generateRoomCode(), getRoom(), joinRoom(), leaveRoom(), listRooms(), localRoomsStore, roomsRouter
 
-### Community 80 - "RegisterPage.jsx"
-Cohesion: 0.11
-Nodes (21): ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage, VerifyEmailPage, BrainIcon(), CheckCircleIcon(), EnvelopeIcon() (+13 more)
+### Community 80 - "react-router-dom"
+Cohesion: 0.24
+Nodes (16): BrainIcon(), CheckCircleIcon(), EnvelopeIcon(), EyeIcon(), EyeOffIcon(), GoogleIcon(), Spinner(), CloudBackground() (+8 more)
 
 ### Community 81 - "Adaptive Quiz Generator for Peer Club"
 Cohesion: 0.25
 Nodes (7): Adaptive Behavior Guidelines, Adaptive Quiz Generator for Peer Club, Conversion to Integer Counts, Difficulty Definitions, Difficulty Rules & Distribution, Input Parameters, Output JSON Schema
 
-### Community 82 - "api.js"
-Cohesion: 0.13
-Nodes (16): FlashcardStudyPage, PrivateRoute(), FlipCard3D(), ProgressBar(), RatingControls(), SAMPLE_FLASHCARD_DECKS, SessionCompleteModal(), useAuth() (+8 more)
+### Community 82 - "FlashcardStudyMode.jsx"
+Cohesion: 0.24
+Nodes (6): FlashcardStudyPage, FlipCard3D(), ProgressBar(), RatingControls(), SessionCompleteModal(), FlashcardStudyMode()
 
 ### Community 83 - "Adaptive Flashcard Deck Generator for Peer Club"
 Cohesion: 0.29
@@ -649,17 +651,17 @@ Nodes (13): Pages Request Handling, Pages Configuration, Pages Functions APIs, P
 Cohesion: 0.09
 Nodes (21): Access and SaaS Federation, API Safety, Architecture and Current State, Assessment Prompts, CASB, Device Posture, and Risk, CASB, Risk, and Operations, Cloudflare One, Cloudflare WAN / Site Connectivity (+13 more)
 
-### Community 86 - "deploy"
-Cohesion: 0.25
-Nodes (7): build, builder, deploy, restartPolicyMaxRetries, restartPolicyType, startCommand, $schema
+### Community 86 - "TopNav.jsx"
+Cohesion: 0.32
+Nodes (4): LogStudyModal(), BottomTabBar(), tabs, TopNav()
 
 ### Community 87 - "email-routing/README.md"
 Cohesion: 0.11
 Nodes (12): Email Routing APIs, Email Routing Setup, Email Routing Troubleshooting, Email Routing Patterns, Email Routing, Reference map, Email Workers APIs, Email Workers Configuration (+4 more)
 
 ### Community 88 - "client/src/utils/dateUtils.js"
-Cohesion: 0.39
-Nodes (7): StreakCardComponent(), daysBetween(), getStreakMotivationalText(), isSameDay(), isStreakActive(), isYesterday(), normalizeDateToUtc()
+Cohesion: 0.60
+Nodes (5): daysBetween(), isSameDay(), isStreakActive(), isYesterday(), normalizeDateToUtc()
 
 ### Community 89 - "cloudflare/SKILL.md"
 Cohesion: 0.10
@@ -1585,33 +1587,49 @@ Nodes (3): Choose a task, Cloudflare AI Gateway, Related references
 Cohesion: 0.67
 Nodes (3): Embedding and retrieval decisions, Tenant scope, Vectorize pattern routes
 
-### Community 341 - "internal.controller.js"
-Cohesion: 0.43
-Nodes (6): checkLapsedStreaksInternal(), getAdminDigest(), getInactiveUsers(), getStreakAlertUsers(), getWeeklyStats(), internalRouter
+### Community 341 - "ProfilePage.tsx"
+Cohesion: 0.24
+Nodes (15): ProfilePage, GenerateFlashcardModal(), CardTitle, DialogContent, DialogDescription, DialogHeader(), DialogTitle, Input (+7 more)
 
-### Community 342 - "streak.routes.js"
-Cohesion: 0.53
-Nodes (4): getStreak(), resetStreak(), updateStreak(), streakRouter
+### Community 342 - "Documents.jsx"
+Cohesion: 0.15
+Nodes (10): DocumentsPage, DocumentCard, BACKDROP_COLORS, DocumentGrid(), DocumentPreview(), DocumentsSidebar(), EmptyDocsState(), SearchBar() (+2 more)
+
+### Community 343 - "LeaderboardPage.jsx"
+Cohesion: 0.15
+Nodes (10): LeaderboardPage, FilterTabs(), LeagueTiers(), PersonalRankCard(), PodiumShowcase(), RankingTable(), SAMPLE_LEADERBOARD_USERS, StatCard() (+2 more)
+
+### Community 344 - "card.jsx"
+Cohesion: 0.16
+Nodes (8): StatCard(), Card, CardContent, CardDescription, CardFooter, CardHeader, framer-motion, recharts
+
+### Community 345 - "button.jsx"
+Cohesion: 0.21
+Nodes (6): Badge(), badgeVariants, Button, buttonVariants, class-variance-authority, @radix-ui/react-slot
+
+### Community 346 - "AnimatedLoader.jsx"
+Cohesion: 0.32
+Nodes (3): AnimatedLoader(), COLOR_VARIANTS, ROTATIONS
 
 ## Knowledge Gaps
-- **2389 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+2384 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 2516 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **18 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **2379 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+2374 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 2506 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
+- **Why does `Flagship Patterns & Best Practices` connect `Flagship Patterns & Best Practices` to `Managing Flags via REST API`, `Targeting Rule Patterns`?**
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **Why does `Multi-Tenant Patterns` connect `Multi-Tenant Patterns` to `workers-for-platforms/README.md`, `Observability`, `Best Practices`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `Snippets API Reference` connect `Snippets API Reference` to `Response Object`, `Request Object`, `REST API Operations`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `Smart Placement Configuration` connect `Smart Placement Configuration` to `smart-placement/README.md`, `Requirements & Limitations`?**
-  _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **What connects `name`, `private`, `version` to the rest of the system?**
-  _2389 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _2379 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `dependencies` be split into smaller, more focused modules?**
-  _Cohesion score 0.07666666666666666 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08300395256916997 - nodes in this community are weakly interconnected._
 - **Should `client/package.json` be split into smaller, more focused modules?**
-  _Cohesion score 0.07142857142857142 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08333333333333333 - nodes in this community are weakly interconnected._
 - **Should `Peer Club` be split into smaller, more focused modules?**
   _Cohesion score 0.05555555555555555 - nodes in this community are weakly interconnected._
+- **Should `Peer Club` be split into smaller, more focused modules?**
+  _Cohesion score 0.05714285714285714 - nodes in this community are weakly interconnected._

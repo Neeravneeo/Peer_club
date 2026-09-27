@@ -1,6 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Users,
   Plus,
@@ -35,14 +37,17 @@ import { SAMPLE_STUDY_ROOMS } from '@/components/rooms/sampleRoomsData';
 
 export function RoomsPage() {
   const navigate = useNavigate();
+  const { roomId } = useParams();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState('vault'); // 'vault' | 'leaderboard' | 'members'
-  const [selectedRoomId, setSelectedRoomId] = useState('room-bio-1');
+  const [selectedRoomId, setSelectedRoomId] = useState(roomId || null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
+
 
   // Fetch backend rooms list
   const { data: serverRooms = [] } = useQuery({
@@ -81,10 +86,29 @@ export function RoomsPage() {
     }));
   }, [serverRooms]);
 
+  // Fetch detailed room
+  const { data: detailedRoom } = useQuery({
+    queryKey: ['room', selectedRoomId],
+    queryFn: async () => {
+      if (!selectedRoomId) return null;
+      const res = await api.get(`/rooms/${selectedRoomId}`);
+      return res.data?.room || null;
+    },
+    enabled: !!selectedRoomId,
+  });
+
   // Selected room
   const selectedRoom = useMemo(() => {
+    if (detailedRoom && detailedRoom.id === selectedRoomId) {
+      return {
+        ...detailedRoom,
+        host: detailedRoom.admin || { name: 'Host' },
+        icon: '📚',
+        roomCode: detailedRoom.roomCode || 'ROOM-01',
+      };
+    }
     return allRooms.find((r) => r.id === selectedRoomId) || allRooms[0] || null;
-  }, [allRooms, selectedRoomId]);
+  }, [allRooms, selectedRoomId, detailedRoom]);
 
   // Filtered rooms
   const filteredRooms = useMemo(() => {
@@ -122,9 +146,8 @@ export function RoomsPage() {
         setSelectedRoomId(data.room.id);
       }
     },
-    onError: () => {
-      toast.info('Simulated creating new study circle!');
-      setIsCreateOpen(false);
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to create study room.');
     },
   });
 
@@ -142,14 +165,58 @@ export function RoomsPage() {
         setSelectedRoomId(data.roomId);
       }
     },
-    onError: () => {
-      toast.info('Joined study circle with code!');
-      setIsJoinOpen(false);
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to join study room. Please check the code.');
     },
   });
 
+  const [onlineMembers, setOnlineMembers] = useState([]);
+  const [sessionState, setSessionState] = useState({ isActive: false, startTime: null });
+  const [activeChannel, setActiveChannel] = useState(null);
+
+  useEffect(() => {
+    if (!selectedRoomId || !user) return;
+
+    const channel = supabase.channel(`room:${selectedRoomId}`, {
+      config: {
+        presence: {
+          key: user.id,
+        },
+      },
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const onlineUsers = Object.values(state).map(p => p[0]);
+        setOnlineMembers(onlineUsers);
+      })
+      .on('broadcast', { event: 'session-state' }, (payload) => {
+        setSessionState(payload.payload);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          setActiveChannel(channel);
+          await channel.track({
+            id: user.id,
+            name: user.name || 'Scholar',
+            avatar: user.avatar,
+            onlineAt: new Date().toISOString()
+          });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+      setActiveChannel(null);
+      setOnlineMembers([]);
+      setSessionState({ isActive: false, startTime: null });
+    };
+  }, [selectedRoomId, user]);
+
   const handleEnterRoom = (room) => {
     setSelectedRoomId(room.id);
+    navigate(`/rooms/${room.id}`, { replace: true });
   };
 
   const handleLeaveRoom = () => {
@@ -310,6 +377,11 @@ export function RoomsPage() {
                   room={selectedRoom}
                   onUploadDoc={() => navigate('/documents')}
                   onLeaveRoom={handleLeaveRoom}
+                  onlineCount={onlineMembers.length}
+                  channel={activeChannel}
+                  sessionState={sessionState}
+                  isAdmin={selectedRoom.admin?.id === user?.id || selectedRoom.host?.id === user?.id}
+                  roomId={selectedRoom.id}
                 />
 
                 {/* Workspace Navigation Tabs */}

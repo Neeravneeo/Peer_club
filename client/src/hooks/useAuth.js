@@ -20,6 +20,12 @@ export function useAuth() {
       if (session?.user) {
         fetchUserProfile()
       } else {
+        const hash = window.location.hash
+        const search = window.location.search
+        // If there's an OAuth callback in the URL, wait for onAuthStateChange
+        if (hash.includes('access_token=') || search.includes('code=')) {
+          return
+        }
         setLoading(false)
       }
     })

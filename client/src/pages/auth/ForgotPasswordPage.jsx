@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { CloudBackground } from '../../components/CloudBackground';
 import { BrainIcon, EnvelopeIcon, Spinner } from '../../components/auth/AuthIcons';
 import { toast } from 'sonner';
+import { getSiteUrl } from '../../lib/utils';
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -19,7 +20,7 @@ export function ForgotPasswordPage() {
 
     try {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${getSiteUrl()}/reset-password`,
       });
 
       if (resetError) throw resetError;

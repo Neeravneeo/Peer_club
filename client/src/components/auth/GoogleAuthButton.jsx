@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../ui/button'
 import { toast } from 'sonner'
+import { getSiteUrl } from '../../lib/utils'
 
 export function GoogleAuthButton() {
   const [loading, setLoading] = useState(false)
@@ -12,7 +13,7 @@ export function GoogleAuthButton() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${getSiteUrl()}/dashboard`,
         },
       })
       if (error) throw error

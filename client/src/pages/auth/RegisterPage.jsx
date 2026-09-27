@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { CloudBackground } from '../../components/CloudBackground';
 import { BrainIcon, GoogleIcon, EyeIcon, EyeOffIcon, Spinner } from '../../components/auth/AuthIcons';
 import { toast } from 'sonner';
+import { getSiteUrl } from '../../lib/utils';
 
 const registerSchema = z
   .object({
@@ -81,7 +82,7 @@ export function RegisterPage() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${getSiteUrl()}/dashboard`,
         },
       });
       if (oauthError) throw oauthError;

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Copy, Check, UploadCloud, Share2, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
+import { StudyTimer } from './StudyTimer';
 
-export function RoomHeader({ room, onUploadDoc, onLeaveRoom }) {
+export function RoomHeader({ room, onUploadDoc, onLeaveRoom, onlineCount, channel, sessionState, isAdmin, roomId }) {
   const [copied, setCopied] = useState(false);
 
   if (!room) return null;
@@ -86,8 +87,17 @@ export function RoomHeader({ room, onUploadDoc, onLeaveRoom }) {
 
         <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 border border-emerald-300 text-xs font-semibold text-emerald-800">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>{room.onlineCount || 3} Peers Online Now</span>
+          <span>{onlineCount !== undefined ? onlineCount : (room.onlineCount || 1)} Peers Online Now</span>
         </div>
+
+        {roomId && (
+          <StudyTimer 
+            roomId={roomId} 
+            isAdmin={isAdmin} 
+            channel={channel} 
+            initialSession={sessionState || { isActive: false, startTime: null }} 
+          />
+        )}
 
         {room.studyGoal && (
           <div className="text-xs text-[var(--color-stone)] italic truncate max-w-sm">
