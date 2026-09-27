@@ -22,7 +22,7 @@ export const app = express();
 
 // Security and utility middleware
 app.use(helmet());
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
+const allowedOrigins = (typeof process !== 'undefined' && process.env.CLIENT_URL ? process.env.CLIENT_URL : 'http://localhost:3000')
   .split(',')
   .map((url) => url.trim().replace(/\/$/, ''))
   .filter(Boolean);
@@ -36,7 +36,7 @@ app.use((req, res, next) => {
   if (
     allowedOrigins.includes(cleanOrigin) ||
     cleanOrigin.endsWith('.vercel.app') ||
-    process.env.NODE_ENV !== 'production'
+    (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production')
   ) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
