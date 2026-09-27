@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FilePlus,
   LayoutTemplate,
@@ -47,6 +47,7 @@ export const INITIAL_SAMPLE_DOCUMENTS = [];
 export function DocumentsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // State
   const [documents, setDocuments] = useState([]);
@@ -234,6 +235,11 @@ export function DocumentsPage() {
       formData.append('title', title.trim());
       formData.append('category', category || 'Study Resources');
       if (summary) formData.append('description', summary.trim());
+      
+      const locationState = location.state;
+      if (locationState?.roomId) {
+        formData.append('roomId', locationState.roomId);
+      }
 
       try {
         const res = await api.post('/documents', formData);

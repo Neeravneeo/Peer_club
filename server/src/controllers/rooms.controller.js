@@ -135,12 +135,27 @@ export async function listRooms(req, res, next) {
               studySessions: true,
             },
           },
+          documents: {
+            select: {
+              _count: {
+                select: {
+                  quizzes: true
+                }
+              }
+            }
+          }
         },
         orderBy: { createdAt: 'desc' },
       });
 
       if (rooms && rooms.length > 0) {
-        return res.json({ rooms });
+        const roomsWithCounts = rooms.map(r => ({
+          ...r,
+          documentCount: r._count?.documents || 0,
+          quizCount: r.documents?.reduce((sum, doc) => sum + (doc._count?.quizzes || 0), 0) || 0,
+          documents: undefined // Don't send empty document objects just for counts
+        }));
+        return res.json({ rooms: roomsWithCounts });
       }
     } catch (dbErr) {
       console.warn('listRooms DB fallback:', dbErr.message?.slice(0, 100));
@@ -185,7 +200,15 @@ export async function getRoom(req, res, next) {
       });
 
       if (room) {
-        return res.json({ room });
+        const documentCount = room.documents?.length || 0;
+        const quizCount = room.documents?.reduce((sum, doc) => sum + (doc._count?.quizzes || 0), 0) || 0;
+        return res.json({ 
+          room: {
+            ...room,
+            documentCount,
+            quizCount
+          }
+        });
       }
     } catch (dbErr) {
       console.warn('getRoom DB fallback:', dbErr.message?.slice(0, 100));

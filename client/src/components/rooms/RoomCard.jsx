@@ -77,7 +77,7 @@ export function RoomCard({ room, isSelected, onSelect, onEnter }) {
         <div className="text-xs text-[var(--color-stone)] flex items-center gap-2 mb-3">
           <FileText className="w-3.5 h-3.5 text-[var(--color-azure)]" />
           <span>
-            {room.documents?.length || 8} Docs • {room.leaderboard?.length || 4} Quizzes
+            {room.documentCount ?? room.documents?.length ?? 0} Docs • {room.quizCount ?? 0} Quizzes
           </span>
         </div>
       </div>

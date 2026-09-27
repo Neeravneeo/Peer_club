@@ -79,9 +79,11 @@ export function RoomsPage() {
       studyGoal: r.studyGoal || 'Collaborative study and review',
       host: r.admin || { name: 'Host' },
       onlineCount: r.members?.length || 1,
-      memberCount: r.members?.length || 1,
+      memberCount: r._count?.members || r.members?.length || 1,
       members: r.members || [],
       documents: r.documents || [],
+      documentCount: r.documentCount || r._count?.documents || 0,
+      quizCount: r.quizCount || 0,
       leaderboard: r.leaderboard || [],
     }));
   }, [serverRooms]);
@@ -377,7 +379,7 @@ export function RoomsPage() {
                 {/* Room Detail Header */}
                 <RoomHeader
                   room={selectedRoom}
-                  onUploadDoc={() => navigate('/documents')}
+                  onUploadDoc={() => navigate('/documents', { state: { roomId: selectedRoom.id } })}
                   onLeaveRoom={handleLeaveRoom}
                   onlineCount={onlineMembers.length}
                   channel={activeChannel}
@@ -391,7 +393,7 @@ export function RoomsPage() {
                   activeTab={activeTab}
                   onSelectTab={setActiveTab}
                   counts={{
-                    docs: selectedRoom.documents?.length || 0,
+                    docs: selectedRoom.documentCount ?? selectedRoom.documents?.length ?? 0,
                     members: selectedRoom.members?.length || 0,
                   }}
                 />
@@ -400,7 +402,7 @@ export function RoomsPage() {
                 {activeTab === 'vault' && (
                   <DocumentsVault
                     documents={selectedRoom.documents}
-                    onUpload={() => navigate('/documents')}
+                    onUpload={() => navigate('/documents', { state: { roomId: selectedRoom.id } })}
                   />
                 )}
 
