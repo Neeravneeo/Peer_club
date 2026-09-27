@@ -81,7 +81,16 @@ export async function uploadDocument(req, res, next) {
     }
 
     // Upload directly to Cloudinary with user folder isolation
-    const uploadResult = await uploadBuffer(file.buffer, file.originalname, file.mimetype, userId);
+    let uploadResult;
+    try {
+      uploadResult = await uploadBuffer(file.buffer, file.originalname, file.mimetype, userId);
+    } catch (uploadErr) {
+      console.error('[documents.controller] Upload to Cloudinary failed:', uploadErr.message);
+      return res.status(502).json({
+        success: false,
+        error: uploadErr.message || 'File upload to Cloudinary failed. Please verify storage credentials.',
+      });
+    }
 
     // Save in database matching ER diagram schema
     let document = null;
@@ -139,10 +148,8 @@ export async function uploadDocument(req, res, next) {
 
     return res.status(201).json({
       success: true,
-      message: uploadResult.isCloudinary
-        ? 'File uploaded and secured in Cloudinary successfully'
-        : `File uploaded to local storage (Cloudinary notice: ${uploadResult.cloudinaryError || 'mismatched credentials'}).`,
-      isCloudinary: !!uploadResult.isCloudinary,
+      message: 'File uploaded and secured in Cloudinary successfully',
+      isCloudinary: true,
       document: {
         id: document.id,
         fileName: document.fileName,

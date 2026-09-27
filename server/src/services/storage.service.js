@@ -1,85 +1,23 @@
-import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { cloudinary, configureCloudinary, checkCloudinaryStatus } from '../lib/cloudinary.js';
 
 // Ensure TLS verification handles campus/corporate self-signed proxy certificates
 if (process.env.NODE_ENV !== 'production' && !process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
 
-export function configureCloudinary() {
-  const cUrl = process.env.CLOUDINARY_URL?.trim();
-  if (cUrl) {
-    cloudinary.config({
-      cloudinary_url: cUrl,
-      secure: true,
-    });
-    return;
-  }
-  const cloud_name = process.env.CLOUDINARY_CLOUD_NAME?.trim();
-  const api_key = process.env.CLOUDINARY_API_KEY?.trim();
-  const api_secret = process.env.CLOUDINARY_API_SECRET?.trim();
-  cloudinary.config({
-    cloud_name,
-    api_key,
-    api_secret,
-    secure: true,
-  });
-}
-
-// Initial configuration
-configureCloudinary();
+// Re-export configuration and health check
+export { cloudinary, configureCloudinary, checkCloudinaryStatus };
 
 /**
- * Live health check for Cloudinary API credentials and connectivity
- */
-export async function checkCloudinaryStatus() {
-  configureCloudinary();
-  const cloud_name = process.env.CLOUDINARY_CLOUD_NAME?.trim();
-  const hasKey = !!process.env.CLOUDINARY_API_KEY?.trim();
-  const hasSecret = !!process.env.CLOUDINARY_API_SECRET?.trim();
-
-  if (!cloud_name || !hasKey || !hasSecret) {
-    return {
-      connected: false,
-      cloudName: cloud_name || null,
-      apiKeyConfigured: hasKey,
-      apiSecretConfigured: hasSecret,
-      message: 'Cloudinary credentials missing or incomplete in environment variables (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET).',
-    };
-  }
-
-  try {
-    const res = await cloudinary.api.ping();
-    return {
-      connected: true,
-      cloudName: cloud_name,
-      status: res?.status || 'ok',
-      message: 'Cloudinary API connected successfully and ready for file uploads.',
-    };
-  } catch (err) {
-    const errMsg = err.error?.message || err.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
-    return {
-      connected: false,
-      cloudName: cloud_name,
-      apiKeyConfigured: hasKey,
-      error: errMsg,
-      message: `Cloudinary API rejected connection: ${errMsg}`,
-    };
-  }
-}
-
-/**
- * Upload a media or document file buffer to Cloudinary
+ * Upload a media or document file buffer directly to Cloudinary.
  * Supports images, audio, video, PDF, and text documents.
  * 
  * @param {Buffer} buffer - File buffer from Multer
  * @param {string} fileName - Original file name
  * @param {string} mimeType - File MIME type
  * @param {string} [userId] - Uploader user ID for directory isolation
- * @returns {Promise<{ fileUrl: string, secureUrl: string, publicId: string, resourceType: string, bytes: number, isCloudinary: boolean, cloudinaryError?: string }>}
+ * @returns {Promise<{ fileUrl: string, secureUrl: string, publicId: string, resourceType: string, bytes: number, isCloudinary: boolean }>}
  */
 export async function uploadBuffer(buffer, fileName, mimeType = 'application/octet-stream', userId = 'shared') {
   configureCloudinary();
@@ -105,8 +43,7 @@ export async function uploadBuffer(buffer, fileName, mimeType = 'application/oct
     resourceType = 'raw';
   }
 
-  return new Promise((resolve) => {
-    // Attempt Cloudinary stream upload
+  return new Promise((resolve, reject) => {
     try {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -131,41 +68,16 @@ export async function uploadBuffer(buffer, fileName, mimeType = 'application/oct
           }
 
           const errReason = error?.message || error?.error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
-          console.warn(`[storage.service] Cloudinary upload returned error (${errReason}). Engaging resilient fallback.`);
-
-          // Resilient fallback storage URL (base64 data URI for small media/docs or safe mock CDN URL)
-          const fallbackUrl = buffer.length <= 2 * 1024 * 1024
-            ? `data:${mimeType};base64,${buffer.toString('base64')}`
-            : `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME || 'Peerclub'}/${resourceType}/upload/${userFolder}/${publicId}`;
-
-          return resolve({
-            fileUrl: fallbackUrl,
-            secureUrl: fallbackUrl,
-            publicId: `${userFolder}/${publicId}`,
-            resourceType,
-            format: mimeType.split('/')[1] || 'bin',
-            bytes: buffer.length,
-            isCloudinary: false,
-            cloudinaryError: errReason,
-          });
+          console.error(`[storage.service] Cloudinary upload returned error: ${errReason}`);
+          return reject(new Error(`Cloudinary upload failed: ${errReason}`));
         }
       );
 
       // Pipe the memory buffer to the Cloudinary stream
       Readable.from(buffer).pipe(uploadStream);
     } catch (uploadException) {
-      console.warn('[storage.service] Cloudinary stream upload exception:', uploadException.message);
-      const fallbackUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
-      resolve({
-        fileUrl: fallbackUrl,
-        secureUrl: fallbackUrl,
-        publicId: `${userFolder}/${publicId}`,
-        resourceType,
-        format: 'bin',
-        bytes: buffer.length,
-        isCloudinary: false,
-        cloudinaryError: uploadException.message,
-      });
+      console.error('[storage.service] Cloudinary stream upload exception:', uploadException.message);
+      return reject(new Error(`Cloudinary stream upload exception: ${uploadException.message}`));
     }
   });
 }
