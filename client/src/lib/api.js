@@ -3,7 +3,7 @@ import { supabase } from './supabase'
 import { PAUSE_AUTH } from '../stores/authStore'
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://peerclub-production.up.railway.app/api',
 })
 
 api.interceptors.request.use(async (config) => {
