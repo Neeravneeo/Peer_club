@@ -6,6 +6,7 @@ import {
   listDocuments,
   getDocument,
   deleteDocument,
+  updateDocument,
 } from '../controllers/documents.controller.js';
 
 export const documentsRouter = Router();
@@ -25,4 +26,5 @@ const uploadFlexible = (req, res, next) => {
 documentsRouter.post('/', uploadFlexible, uploadDocument);
 documentsRouter.get('/', listDocuments);
 documentsRouter.get('/:id', getDocument);
+documentsRouter.patch('/:id', updateDocument);
 documentsRouter.delete('/:id', deleteDocument);

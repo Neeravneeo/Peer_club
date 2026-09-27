@@ -38,7 +38,7 @@ import {
   HandDrawnUnderline,
   HandDrawnArrow,
 } from '@/components/DecorativeElements';
-import { DocumentUploadModal } from '@/components/documents';
+import { DocumentUploadModal, MoveDocumentModal } from '@/components/documents';
 import { triggerStreakActivity } from '@/components/StreakCard';
 
 // Sample Documents Data (Mock preloaded docs removed - only user uploaded files shown)
@@ -57,6 +57,7 @@ export function DocumentsPage() {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
   const [activeFilter, setActiveFilter] = useState('all');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [documentToMove, setDocumentToMove] = useState(null);
 
   // Modals state
   const [isNewDocModalOpen, setIsNewDocModalOpen] = useState(false);
@@ -219,6 +220,19 @@ export function DocumentsPage() {
     };
     setDocuments((prev) => [duplicated, ...prev]);
     toast.success(`Duplicated "${doc.title}"`);
+  };
+
+  const handleMoveDocument = async (roomId) => {
+    if (!documentToMove || !roomId) return;
+    
+    try {
+      await api.patch(`/documents/${documentToMove.id}`, { roomId });
+      toast.success(`Document moved to study room successfully!`);
+      setDocumentToMove(null);
+    } catch (err) {
+      console.error('Failed to move document:', err);
+      toast.error('Failed to move document. Please try again.');
+    }
   };
 
   const handleCreateDocument = async (payload) => {
@@ -526,6 +540,7 @@ export function DocumentsPage() {
               onDelete={handleDelete}
               onDuplicate={handleDuplicate}
               onToggleStar={handleToggleStar}
+              onMove={(doc) => setDocumentToMove(doc)}
             />
           )}
         </main>
@@ -538,6 +553,13 @@ export function DocumentsPage() {
         isOpen={isNewDocModalOpen}
         onClose={() => setIsNewDocModalOpen(false)}
         onCreate={handleCreateDocument}
+      />
+
+      <MoveDocumentModal
+        isOpen={!!documentToMove}
+        onClose={() => setDocumentToMove(null)}
+        onMove={handleMoveDocument}
+        documentToMove={documentToMove}
       />
 
       {/* ============================================================ */}

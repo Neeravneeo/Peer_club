@@ -102,6 +102,19 @@ export const DocumentGrid = ({
                   <Trash2 className="w-4 h-4" />
                 </button>
 
+                {onMove && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMove?.(doc);
+                    }}
+                    className="p-2 rounded-full text-[var(--color-stone)] hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    title="Move to Study Room"
+                  >
+                    <Folder className="w-4 h-4" />
+                  </button>
+                )}
+
                 <div className="w-8 h-8 rounded-full bg-[var(--color-linen)] flex items-center justify-center text-[var(--color-graphite)] group-hover:bg-[var(--color-ink)] group-hover:text-white transition-colors">
                   <ArrowUpRight className="w-4 h-4" />
                 </div>

@@ -360,3 +360,46 @@ export async function deleteDocument(req, res, next) {
     next(err);
   }
 }
+
+export async function updateDocument(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { roomId } = req.body;
+    const userId = req.user.id;
+
+    if (!roomId) {
+      return res.status(400).json({ error: 'roomId is required for update' });
+    }
+
+    let doc;
+    try {
+      doc = await prisma.document.findUnique({ where: { id } });
+    } catch (e) {
+      doc = memoryDocuments.get(id);
+    }
+
+    if (!doc) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    if (doc.uploadedBy !== userId) {
+      return res.status(403).json({ error: 'Not authorized to update this document' });
+    }
+
+    let updatedDoc;
+    try {
+      updatedDoc = await prisma.document.update({
+        where: { id },
+        data: { roomId },
+      });
+    } catch (e) {
+      console.warn('Fallback memory update:', e.message);
+      updatedDoc = { ...doc, roomId };
+      memoryDocuments.set(id, updatedDoc);
+    }
+
+    return res.json({ success: true, document: updatedDoc });
+  } catch (err) {
+    next(err);
+  }
+}

@@ -328,6 +328,19 @@ export const DocumentCardComponent = ({
               <span>{isStarred ? 'Remove from Starred' : 'Star Document'}</span>
             </button>
 
+            {onMove && (
+              <button
+                onClick={() => {
+                  setContextMenuOpen(false);
+                  onMove?.(document);
+                }}
+                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-[var(--color-graphite)] hover:text-[var(--color-ink)] hover:bg-[var(--color-linen)] transition-colors text-left"
+              >
+                <FolderInput className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Move to Study Room</span>
+              </button>
+            )}
+
             <div className="border-t border-[var(--color-ash)]/60 my-1" />
 
             <button

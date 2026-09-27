@@ -7,3 +7,4 @@ export { useFileUpload } from './hooks/useFileUpload';
 export { useModalAnimation } from './hooks/useModalAnimation';
 export { validateFile, formatFileSize } from './utils/fileUtils';
 export * from './Icons';
+export { MoveDocumentModal } from './MoveDocumentModal';
