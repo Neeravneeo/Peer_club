@@ -147,7 +147,8 @@ export function RoomsPage() {
       }
     },
     onError: (err) => {
-      toast.error(err.response?.data?.error || 'Failed to create study room.');
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to create study room.';
+      toast.error(`Error: ${errorMessage}`);
     },
   });
 
@@ -166,7 +167,8 @@ export function RoomsPage() {
       }
     },
     onError: (err) => {
-      toast.error(err.response?.data?.error || 'Failed to join study room. Please check the code.');
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to join study room. Please check the code.';
+      toast.error(`Error: ${errorMessage}`);
     },
   });
 
