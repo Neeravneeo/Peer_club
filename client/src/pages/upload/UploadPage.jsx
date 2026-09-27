@@ -38,9 +38,7 @@ export function UploadPage() {
       formData.append('document', file);
       formData.append('file', file);
 
-      const res = await api.post('/documents', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const res = await api.post('/documents', formData);
       return res.data;
     },
     onSuccess: async (res) => {

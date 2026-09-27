@@ -9,13 +9,67 @@ if (process.env.NODE_ENV !== 'production' && !process.env.NODE_TLS_REJECT_UNAUTH
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
 
-// Configure Cloudinary with environment variables
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'Peerclub',
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
+export function configureCloudinary() {
+  const cUrl = process.env.CLOUDINARY_URL?.trim();
+  if (cUrl) {
+    cloudinary.config({
+      cloudinary_url: cUrl,
+      secure: true,
+    });
+    return;
+  }
+  const cloud_name = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+  const api_key = process.env.CLOUDINARY_API_KEY?.trim();
+  const api_secret = process.env.CLOUDINARY_API_SECRET?.trim();
+  cloudinary.config({
+    cloud_name,
+    api_key,
+    api_secret,
+    secure: true,
+  });
+}
+
+// Initial configuration
+configureCloudinary();
+
+/**
+ * Live health check for Cloudinary API credentials and connectivity
+ */
+export async function checkCloudinaryStatus() {
+  configureCloudinary();
+  const cloud_name = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+  const hasKey = !!process.env.CLOUDINARY_API_KEY?.trim();
+  const hasSecret = !!process.env.CLOUDINARY_API_SECRET?.trim();
+
+  if (!cloud_name || !hasKey || !hasSecret) {
+    return {
+      connected: false,
+      cloudName: cloud_name || null,
+      apiKeyConfigured: hasKey,
+      apiSecretConfigured: hasSecret,
+      message: 'Cloudinary credentials missing or incomplete in environment variables (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET).',
+    };
+  }
+
+  try {
+    const res = await cloudinary.api.ping();
+    return {
+      connected: true,
+      cloudName: cloud_name,
+      status: res?.status || 'ok',
+      message: 'Cloudinary API connected successfully and ready for file uploads.',
+    };
+  } catch (err) {
+    const errMsg = err.error?.message || err.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
+    return {
+      connected: false,
+      cloudName: cloud_name,
+      apiKeyConfigured: hasKey,
+      error: errMsg,
+      message: `Cloudinary API rejected connection: ${errMsg}`,
+    };
+  }
+}
 
 /**
  * Upload a media or document file buffer to Cloudinary
@@ -25,9 +79,11 @@ cloudinary.config({
  * @param {string} fileName - Original file name
  * @param {string} mimeType - File MIME type
  * @param {string} [userId] - Uploader user ID for directory isolation
- * @returns {Promise<{ fileUrl: string, secureUrl: string, publicId: string, resourceType: string, bytes: number }>}
+ * @returns {Promise<{ fileUrl: string, secureUrl: string, publicId: string, resourceType: string, bytes: number, isCloudinary: boolean, cloudinaryError?: string }>}
  */
 export async function uploadBuffer(buffer, fileName, mimeType = 'application/octet-stream', userId = 'shared') {
+  configureCloudinary();
+
   const cleanName = (fileName || 'document')
     .replace(/\.[^/.]+$/, '')
     .replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -70,10 +126,11 @@ export async function uploadBuffer(buffer, fileName, mimeType = 'application/oct
               resourceType: result.resource_type || resourceType,
               format: result.format || mimeType.split('/')[1] || 'raw',
               bytes: result.bytes || buffer.length,
+              isCloudinary: true,
             });
           }
 
-          const errReason = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+          const errReason = error?.message || error?.error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
           console.warn(`[storage.service] Cloudinary upload returned error (${errReason}). Engaging resilient fallback.`);
 
           // Resilient fallback storage URL (base64 data URI for small media/docs or safe mock CDN URL)
@@ -88,6 +145,8 @@ export async function uploadBuffer(buffer, fileName, mimeType = 'application/oct
             resourceType,
             format: mimeType.split('/')[1] || 'bin',
             bytes: buffer.length,
+            isCloudinary: false,
+            cloudinaryError: errReason,
           });
         }
       );
@@ -104,6 +163,8 @@ export async function uploadBuffer(buffer, fileName, mimeType = 'application/oct
         resourceType,
         format: 'bin',
         bytes: buffer.length,
+        isCloudinary: false,
+        cloudinaryError: uploadException.message,
       });
     }
   });

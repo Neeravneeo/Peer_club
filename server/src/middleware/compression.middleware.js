@@ -10,11 +10,6 @@ export function edgeCompression(options = {}) {
   return (req, res, next) => {
     const startTime = process.hrtime.bigint();
 
-    // Attach response time header on finish
-    res.on('finish', () => {
-      const durationMs = Number(process.hrtime.bigint() - startTime) / 1e6;
-      res.setHeader('Server-Timing', `total;dur=${durationMs.toFixed(1)}`);
-    });
 
     const acceptEncoding = req.headers['accept-encoding'] || '';
     if (!acceptEncoding) {

@@ -139,7 +139,10 @@ export async function uploadDocument(req, res, next) {
 
     return res.status(201).json({
       success: true,
-      message: 'File uploaded and secured in Cloudinary successfully',
+      message: uploadResult.isCloudinary
+        ? 'File uploaded and secured in Cloudinary successfully'
+        : `File uploaded to local storage (Cloudinary notice: ${uploadResult.cloudinaryError || 'mismatched credentials'}).`,
+      isCloudinary: !!uploadResult.isCloudinary,
       document: {
         id: document.id,
         fileName: document.fileName,

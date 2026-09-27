@@ -15,6 +15,7 @@ import { roomsRouter } from './routes/rooms.routes.js';
 import { leaderboardRouter } from './routes/leaderboard.routes.js';
 import { internalRouter } from './routes/internal.routes.js';
 import { streakRouter } from './routes/streak.routes.js';
+import { checkCloudinaryStatus } from './services/storage.service.js';
 
 dotenv.config();
 
@@ -70,6 +71,11 @@ app.get('/api/health', (req, res) => {
     service: 'Peer Club API',
     timestamp: new Date().toISOString(),
   });
+});
+
+app.get('/api/health/cloudinary', async (req, res) => {
+  const status = await checkCloudinaryStatus();
+  res.status(status.connected ? 200 : 503).json(status);
 });
 
 // Central Error Handler

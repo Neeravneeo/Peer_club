@@ -236,9 +236,7 @@ export function DocumentsPage() {
       if (summary) formData.append('description', summary.trim());
 
       try {
-        const res = await api.post('/documents', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        const res = await api.post('/documents', formData);
         uploadedDoc = res.data;
       } catch (err) {
         console.warn('API document upload fallback:', err);

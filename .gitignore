@@ -47,11 +47,14 @@ scratch/
 graphify-out/cache/
 
 
-# AI and generated files
+# AI and generated files & folders
 docs/
 graphify-out/
 graph-engineering/
 .agents/
+.cursor/
+.vscode/
 .claude/
 *.md
-!README.md
+**/*.md
+

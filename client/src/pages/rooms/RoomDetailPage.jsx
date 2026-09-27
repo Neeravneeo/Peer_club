@@ -91,9 +91,7 @@ export function RoomDetailPage() {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('roomId', roomId)
-      const res = await api.post('/documents', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      const res = await api.post('/documents', formData)
       return res.data
     },
     onSuccess: (res) => {
