@@ -10,29 +10,10 @@
 - **Backend**: Node.js (JavaScript / ESM), Express.js, Prisma ORM
 - **Database & ORM**: Supabase (PostgreSQL 15+) with Prisma ORM
 - **Authentication**: Supabase Auth (JWT), Google OAuth
-- **AI Integration**: Google Gemini 1.5 Flash API
+- **AI Integration**: qwen/qwen3.8-27b:free
 - **File Upload & Storage**: Multer, pdf-parse, Cloudinary
 - **Automation**: n8n (15 Automated Email & Retention Workflows)
 - **Deployment**: Vercel (Client) + Render (Server)
-
----
-
-## 📂 Repository Structure
-
-```
-peer-club/
-├── client/          # React SPA (Vite + JSX)
-├── server/          # Express API (Node.js ESM + Prisma)
-├── docs/            # Product & Technical Specifications
-│   ├── 1_PRD.md
-│   ├── 2_TRD.md
-│   ├── 3_App_Flow.md
-│   ├── 4_UI_UX_Brief.md
-│   ├── 5_Backend_Schema.md
-│   └── 6_Implementation_Plan.md
-└── README.md
-```
-
 ---
 
 ## 🚀 Getting Started
